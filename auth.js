@@ -8,6 +8,7 @@ import {
   ImageBackground,
 } from "react-native";
 import { TextInput } from "react-native-gesture-handler";
+import { GoogleSignin } from "@react-native-google-signin/google-signin";
 // import "expo-dev-client";
 
 // import ReactNativeAsyncStorage from "@react-native-async-storage/async-storage";
@@ -21,6 +22,7 @@ import {
   signInWithPopup,
   getReactNativePersistence,
 } from "firebase/auth";
+import "expo-dev-client";
 import * as Google from "expo-auth-session/providers/google";
 import * as WebBrowser from "expo-web-browser";
 
