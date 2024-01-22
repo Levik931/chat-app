@@ -2,6 +2,7 @@
   "expo": {
     "name": "chatapp-1",
     "slug": "chatapp-1",
+    "scheme": "chatapp-1",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -15,16 +16,23 @@
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.levik.chatapp1"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.levik.chatapp1"
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "a3c1b92c-665e-4fb2-99aa-d5e836147f8d"
+      }
     }
   }
 }

@@ -32,9 +32,9 @@ const LoginPage = () => {
   const [request, response, promptAsync] = Google.useAuthRequest({
     iosClientId:
       "629450976243-c6edbh4am9mkmvuk04vn8b7v9l6irp2q.apps.googleusercontent.com",
-    androidClientId:
-      "629450976243-riu097jmp17vumsn9sqprc7sd6cr6pr2.apps.googleusercontent.com",
-    // webClientId:
+    // androidClientId:
+    //   "629450976243-riu097jmp17vumsn9sqprc7sd6cr6pr2.apps.googleusercontent.com",
+    // // webClientId:
     //   "183951813596-vsq1qfptv93rfc8sbkcprqf1g04ltj1g.apps.googleusercontent.com",
     // scopes: ["profile", "email"],
   });
