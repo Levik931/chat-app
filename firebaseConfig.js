@@ -1,7 +1,6 @@
-// Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-import { getAuth } from "firebase/auth";
+import { initializeAuth, getReactNativePersistence } from "firebase/auth";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
@@ -15,8 +14,16 @@ const firebaseConfig = {
   measurementId: "G-XNNGRTLDB5",
 };
 
-// Initialize Firebase
+// Initialize Firebase App
 const FIREBASE_APP = initializeApp(firebaseConfig);
-export const FIREBASE_AUTH = getAuth(FIREBASE_APP);
+
+// Initialize Firebase Auth with AsyncStorage for persistence
+export const FIREBASE_AUTH = initializeAuth(FIREBASE_APP, {
+  persistence: getReactNativePersistence(AsyncStorage),
+});
+
+// Initialize Firestore
+export const FIREBASE_FIRESTORE = getFirestore(FIREBASE_APP);
+
 // ios: 629450976243-c6edbh4am9mkmvuk04vn8b7v9l6irp2q.apps.googleusercontent.com
 // android : 629450976243-riu097jmp17vumsn9sqprc7sd6cr6pr2.apps.googleusercontent.com

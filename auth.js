@@ -12,6 +12,7 @@ import { TextInput } from "react-native-gesture-handler";
 
 // import ReactNativeAsyncStorage from "@react-native-async-storage/async-storage";
 import { FIREBASE_AUTH } from "./firebaseConfig";
+import * as SecureStore from "expo-secure-store";
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
@@ -20,11 +21,13 @@ import {
   signInWithCredential,
   signInWithPopup,
   getReactNativePersistence,
+  setPersistence,
+  browserSessionPersistence,
 } from "firebase/auth";
 import * as Google from "expo-auth-session/providers/google";
 import * as WebBrowser from "expo-web-browser";
 
-WebBrowser.mayInitWithUrlAsync();
+// WebBrowser.mayInitWithUrlAsync();
 const LoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -49,6 +52,10 @@ const LoginPage = () => {
         try {
           const credential = GoogleAuthProvider.credential(id_token);
           const firebaseResponse = await signInWithCredential(auth, credential);
+          await SecureStore.setItemAsync(
+            "userToken",
+            firebaseResponse.user.uid
+          );
           console.log(firebaseResponse);
           alert("Check your Email");
         } catch (error) {
@@ -93,35 +100,6 @@ const LoginPage = () => {
       setLoading(false);
     }
   };
-  // const signInWithGoogle = async () => {
-  //   setLoading(true);
-  //   try {
-  //     // Start the Google authentication flow
-  //     const { type, accessToken, idToken } = Google.useAuthRequest({
-  //       iosClientId:
-  //         "629450976243-c6edbh4am9mkmvuk04vn8b7v9l6irp2q.apps.googleusercontent.com",
-  //       androidClientId:
-  //         "629450976243-riu097jmp17vumsn9sqprc7sd6cr6pr2.apps.googleusercontent.com",
-  //     });
-
-  //     if (type === "success") {
-  //       // Create a Google credential with the token
-  //       const credential = GoogleAuthProvider.credential(idToken, accessToken);
-
-  //       // Sign-in with the credential to Firebase
-  //       const response = await signInWithCredential(auth, credential);
-  //       console.log(response);
-  //       alert("Check your Email");
-  //     } else {
-  //       // Handle other cases
-  //     }
-  //   } catch (error) {
-  //     console.error(error);
-  //     alert("Sign In Failed: " + error.message);
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
 
   return (
     <ImageBackground
