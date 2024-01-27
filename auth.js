@@ -19,7 +19,6 @@ import {
   GoogleAuthProvider,
   onAuthStateChanged,
   signInWithCredential,
-  signInWithPopup,
   getReactNativePersistence,
   setPersistence,
   browserSessionPersistence,
@@ -28,7 +27,7 @@ import * as Google from "expo-auth-session/providers/google";
 import * as WebBrowser from "expo-web-browser";
 
 // WebBrowser.mayInitWithUrlAsync();
-const LoginPage = () => {
+const LoginPage = ({ navigation }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -51,13 +50,9 @@ const LoginPage = () => {
         setLoading(true);
         try {
           const credential = GoogleAuthProvider.credential(id_token);
-          const firebaseResponse = await signInWithCredential(auth, credential);
-          await SecureStore.setItemAsync(
-            "userToken",
-            firebaseResponse.user.uid
-          );
-          console.log(firebaseResponse);
-          alert("Check your Email");
+          await signInWithCredential(auth, credential);
+          console.log("Login successful");
+          navigation.navigate("Home");
         } catch (error) {
           console.error(error);
           alert("Sign In Failed: " + error.message);
@@ -68,7 +63,7 @@ const LoginPage = () => {
 
       signInWithGoogle();
     }
-  }, [response]);
+  }, [response, navigation]);
 
   const signIn = async () => {
     setLoading(true);
