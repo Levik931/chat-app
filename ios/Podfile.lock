@@ -10,7 +10,7 @@ PODS:
   - EXJSONUtils (0.12.3)
   - EXManifests (0.13.2):
     - ExpoModulesCore
-  - Expo (50.0.2):
+  - Expo (50.0.4):
     - ExpoModulesCore
   - expo-dev-client (3.3.7):
     - EXManifests
@@ -81,11 +81,11 @@ PODS:
     - React-Core
   - ExpoCrypto (12.8.0):
     - ExpoModulesCore
-  - ExpoFileSystem (16.0.4):
+  - ExpoFileSystem (16.0.5):
     - ExpoModulesCore
   - ExpoKeepAwake (12.8.2):
     - ExpoModulesCore
-  - ExpoModulesCore (1.11.7):
+  - ExpoModulesCore (1.11.8):
     - glog
     - RCT-Folly (= 2022.05.16.00)
     - React-Core
@@ -94,7 +94,7 @@ PODS:
     - ReactCommon/turbomodule/core
   - ExpoSecureStore (12.8.1):
     - ExpoModulesCore
-  - ExpoWebBrowser (12.8.1):
+  - ExpoWebBrowser (12.8.2):
     - ExpoModulesCore
   - EXUpdatesInterface (0.15.3)
   - FBLazyVector (0.73.2)
@@ -105,20 +105,20 @@ PODS:
     - React-Core (= 0.73.2)
     - React-jsi (= 0.73.2)
     - ReactCommon/turbomodule/core (= 0.73.2)
-  - Firebase/Auth (10.19.0):
+  - Firebase/Auth (10.20.0):
     - Firebase/CoreOnly
-    - FirebaseAuth (~> 10.19.0)
-  - Firebase/CoreOnly (10.19.0):
-    - FirebaseCore (= 10.19.0)
+    - FirebaseAuth (~> 10.20.0)
+  - Firebase/CoreOnly (10.20.0):
+    - FirebaseCore (= 10.20.0)
   - FirebaseAppCheckInterop (10.20.0)
-  - FirebaseAuth (10.19.0):
+  - FirebaseAuth (10.20.0):
     - FirebaseAppCheckInterop (~> 10.17)
     - FirebaseCore (~> 10.0)
     - GoogleUtilities/AppDelegateSwizzler (~> 7.8)
     - GoogleUtilities/Environment (~> 7.8)
     - GTMSessionFetcher/Core (< 4.0, >= 2.1)
     - RecaptchaInterop (~> 100.0)
-  - FirebaseCore (10.19.0):
+  - FirebaseCore (10.20.0):
     - FirebaseCoreInternal (~> 10.0)
     - GoogleUtilities/Environment (~> 7.12)
     - GoogleUtilities/Logger (~> 7.12)
@@ -165,7 +165,12 @@ PODS:
   - hermes-engine/Pre-built (0.73.2)
   - HMSegmentedControl (1.5.6)
   - libevent (2.1.12)
-  - lottie-ios (3.1.8)
+  - lottie-ios (4.3.3)
+  - lottie-react-native (6.5.1):
+    - glog
+    - lottie-ios (~> 4.3.3)
+    - RCT-Folly (= 2022.05.16.00)
+    - React-Core
   - PromisesObjC (2.3.1)
   - RCT-Folly (2022.05.16.00):
     - boost
@@ -1225,18 +1230,18 @@ PODS:
     - React-Core
   - RNCMaskedView (0.1.11):
     - React
-  - RNFBApp (18.7.3):
-    - Firebase/CoreOnly (= 10.19.0)
+  - RNFBApp (18.8.0):
+    - Firebase/CoreOnly (= 10.20.0)
     - React-Core
-  - RNFBAuth (18.7.3):
-    - Firebase/Auth (= 10.19.0)
+  - RNFBAuth (18.8.0):
+    - Firebase/Auth (= 10.20.0)
     - React-Core
     - RNFBApp
   - RNGestureHandler (2.14.1):
     - glog
     - RCT-Folly (= 2022.05.16.00)
     - React-Core
-  - RNReanimated (3.6.1):
+  - RNReanimated (3.6.2):
     - glog
     - RCT-Folly (= 2022.05.16.00)
     - React-Core
@@ -1277,6 +1282,7 @@ DEPENDENCIES:
   - hermes-engine (from `../node_modules/react-native/sdks/hermes-engine/hermes-engine.podspec`)
   - libevent (~> 2.1.12)
   - lottie-ios (from `../node_modules/lottie-ios`)
+  - lottie-react-native (from `../node_modules/lottie-react-native`)
   - RCT-Folly (from `../node_modules/react-native/third-party-podspecs/RCT-Folly.podspec`)
   - RCT-Folly/Fabric (from `../node_modules/react-native/third-party-podspecs/RCT-Folly.podspec`)
   - RCTRequired (from `../node_modules/react-native/Libraries/RCTRequired`)
@@ -1398,6 +1404,8 @@ EXTERNAL SOURCES:
     :tag: hermes-2023-11-17-RNv0.73.0-21043a3fc062be445e56a2c10ecd8be028dd9cc5
   lottie-ios:
     :path: "../node_modules/lottie-ios"
+  lottie-react-native:
+    :path: "../node_modules/lottie-react-native"
   RCT-Folly:
     :podspec: "../node_modules/react-native/third-party-podspecs/RCT-Folly.podspec"
   RCTRequired:
@@ -1511,24 +1519,24 @@ SPEC CHECKSUMS:
   EXFont: 21b9c760abd593ce8f0d5386b558ced76018506f
   EXJSONUtils: 5c42959e87be238b045ef37cc5268b16a6c0ad4a
   EXManifests: 5e8c29f36c716af768a4ea47ec05e1b89ab93091
-  Expo: 6c6526e76864e140363431722b22d0fa3cdeafd2
+  Expo: 1e3bcf9dd99de57a636127057f6b488f0609681a
   expo-dev-client: 80a81d82fd401673ab11702ce9e54115a8852f3b
   expo-dev-launcher: 141aa2d7e603102de71caa9530c293a6c1737653
   expo-dev-menu: 1b221587615ce11b37a64da5520e9a639496571b
   expo-dev-menu-interface: 7ba029c9d1a82ac22b9b584c00514860b060553e
   ExpoCrypto: e2ca148f5c93a0514959df86b34256bb3c50d358
-  ExpoFileSystem: 39e454b8e7f2358ae2c8f8ec255fede4c3039493
+  ExpoFileSystem: 04795dd4d47e76eaf12e38c92091f77d794f9e7f
   ExpoKeepAwake: 0f5cad99603a3268e50af9a6eb8b76d0d9ac956c
-  ExpoModulesCore: b442dfc02228b4d0d7fc475c5fba05cee360e6c7
+  ExpoModulesCore: 2346e83abf90c2b2c16a54c3fc4a1169ae12816c
   ExpoSecureStore: c84ae37d1c36f38524d289c67c3a2e3fc56f1108
-  ExpoWebBrowser: 3b3cde8aa02b08dded6f436e5851e94fec6525c5
+  ExpoWebBrowser: e31c97230ea93b51a2a74c6c2381b0d4fca5698c
   EXUpdatesInterface: 3e444e2093e25b7ca0999a7d8c16e8392dee70c3
   FBLazyVector: fbc4957d9aa695250b55d879c1d86f79d7e69ab4
   FBReactNativeSpec: 86de768f89901ef6ed3207cd686362189d64ac88
-  Firebase: 63ce8ece0d43743dc28eacac0c6867a2d7fd5a9d
+  Firebase: 10c8cb12fb7ad2ae0c09ffc86cd9c1ab392a0031
   FirebaseAppCheckInterop: e81bdb1cdb82f8e0cef353ba5018a8402682032c
-  FirebaseAuth: 2492acdcd1245d841fabdf58a050d6aa07dfce3f
-  FirebaseCore: dc5c7badf99d47613c52b2e3a57a64cd187f8554
+  FirebaseAuth: 9c5c400d2c3055d8ae3a0284944c86fa95d48dac
+  FirebaseCore: 28045c1560a2600d284b9c45a904fe322dc890b6
   FirebaseCoreInternal: efeeb171ac02d623bdaefe121539939821e10811
   fmt: ff9d55029c625d3757ed641535fd4a75fedc7ce9
   glog: c5d68082e772fa1c511173d6b30a9de2c05a69a2
@@ -1537,7 +1545,8 @@ SPEC CHECKSUMS:
   hermes-engine: b361c9ef5ef3cda53f66e195599b47e1f84ffa35
   HMSegmentedControl: 34c1f54d822d8308e7b24f5d901ec674dfa31352
   libevent: 4049cae6c81cdb3654a443be001fb9bdceff7913
-  lottie-ios: 48fac6be217c76937e36e340e2d09cf7b10b7f5f
+  lottie-ios: 25e7b2675dad5c3ddad369ac9baab03560c5bfdd
+  lottie-react-native: 01b0fc0cfd7619de43e878edd6a61b930ccf485b
   PromisesObjC: c50d2056b5253dadbd6c2bea79b0674bd5a52fa4
   RCT-Folly: 7169b2b1c44399c76a47b5deaaba715eeeb476c0
   RCTRequired: 9b1e7e262745fb671e33c51c1078d093bd30e322
@@ -1585,10 +1594,10 @@ SPEC CHECKSUMS:
   RecaptchaInterop: 7d1a4a01a6b2cb1610a47ef3f85f0c411434cb21
   RNCAsyncStorage: 618d03a5f52fbccb3d7010076bc54712844c18ef
   RNCMaskedView: 0e1bc4bfa8365eba5fbbb71e07fbdc0555249489
-  RNFBApp: c21258de1485419a845efbba9c09ec946c89891d
-  RNFBAuth: 079bb1bc37a912a277aedf366fe5bf4632b069c9
+  RNFBApp: 5810d39f89d38272f29d9908cb19ef641922c081
+  RNFBAuth: 22be3e62ac7efaeff8edddd4de93d288382ecdc7
   RNGestureHandler: 28bdf9a766c081e603120f79e925b72817c751c6
-  RNReanimated: 9fc2b08ed365d7dc451bc451605d89c01f2c935b
+  RNReanimated: 1873432b0b86d0224bbe19aacea7ad8eef4e7518
   RNScreens: 2b73f5eb2ac5d94fbd61fa4be0bfebd345716825
   RNSVG: ba3e7232f45e34b7b47e74472386cf4e1a676d0a
   SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
