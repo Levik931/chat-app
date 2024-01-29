@@ -8,9 +8,6 @@ import {
   ImageBackground,
 } from "react-native";
 import { TextInput } from "react-native-gesture-handler";
-// import "expo-dev-client";
-
-// import ReactNativeAsyncStorage from "@react-native-async-storage/async-storage";
 import { FIREBASE_AUTH } from "./firebaseConfig";
 import * as SecureStore from "expo-secure-store";
 import {
@@ -19,15 +16,15 @@ import {
   GoogleAuthProvider,
   onAuthStateChanged,
   signInWithCredential,
-  getReactNativePersistence,
-  setPersistence,
-  browserSessionPersistence,
+  signOut,
 } from "firebase/auth";
 import * as Google from "expo-auth-session/providers/google";
 import * as WebBrowser from "expo-web-browser";
 
+// console.log("logout function in LoginPage:");
 // WebBrowser.mayInitWithUrlAsync();
 const LoginPage = ({ navigation }) => {
+  console.log("logout function in LoginPage:");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -42,6 +39,7 @@ const LoginPage = ({ navigation }) => {
   });
 
   const auth = FIREBASE_AUTH;
+
   useEffect(() => {
     if (response?.type === "success") {
       const { id_token } = response.params;
@@ -95,6 +93,17 @@ const LoginPage = ({ navigation }) => {
       setLoading(false);
     }
   };
+  const logout = async () => {
+    try {
+      await signOut(auth);
+      navigation.navigate("Login");
+      console.log("User signed out!");
+      // Navigate to login screen or do other actions after logout
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
+  };
+  console.log("logout function in LoginPage:", logout);
 
   return (
     <ImageBackground
@@ -121,7 +130,6 @@ const LoginPage = ({ navigation }) => {
           style={styles.signInButton}
           secureTextEntry
         />
-
         {/* Sign In with Google Button */}
         <TouchableOpacity
           style={[
@@ -141,7 +149,6 @@ const LoginPage = ({ navigation }) => {
         >
           <Text style={styles.loginText}>SignUp</Text>
         </TouchableOpacity>
-
         <TouchableOpacity
           style={[styles.signInButton, { backgroundColor: "gray" }]}
           onPress={() => console.log("Sign In with Google Pressed")}
@@ -158,7 +165,6 @@ const LoginPage = ({ navigation }) => {
           <Image source={require("./google.png")} style={styles.PNG} />
           <Text style={styles.buttonText}>Continue with Google</Text>
         </TouchableOpacity>
-
         {/* Sign In with Apple Button */}
         <TouchableOpacity
           style={styles.signInButton}

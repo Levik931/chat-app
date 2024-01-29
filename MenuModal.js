@@ -1,8 +1,28 @@
 // MenuModal.js
 import React from "react";
 import { View, Text, TouchableOpacity, Modal, StyleSheet } from "react-native";
+import { FIREBASE_AUTH } from "./firebaseConfig";
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  GoogleAuthProvider,
+  onAuthStateChanged,
+  signInWithCredential,
+  signOut,
+} from "firebase/auth";
+auth = FIREBASE_AUTH;
+const MenuModal = ({ isVisible, onOpen, onClose, logout, navigation }) => {
+  const logoutGoogle = async () => {
+    try {
+      await signOut(auth);
+      navigation.navigate("Login");
+      console.log("User signed out!");
+      // Navigate to login screen or do other actions after logout
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
+  };
 
-const MenuModal = ({ isVisible, onOpen, onClose, onMenuItemPress }) => {
   return (
     <Modal
       animationType="slide"
@@ -17,10 +37,7 @@ const MenuModal = ({ isVisible, onOpen, onClose, onMenuItemPress }) => {
         >
           <Text style={styles.menuItemText}>Edit</Text>
         </TouchableOpacity>
-        <TouchableOpacity
-          onPress={() => onMenuItemPress("Log Out")}
-          style={styles.menuItem}
-        >
+        <TouchableOpacity onPress={logoutGoogle} style={styles.menuItem}>
           <Text style={styles.menuItemText}>Log Out</Text>
         </TouchableOpacity>
         <TouchableOpacity
