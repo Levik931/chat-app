@@ -49,27 +49,28 @@ const NewChatSection = ({ navigation }) => {
     if (message.trim() === "") {
       return;
     }
-
     const newMessage = {
       type: "sentMessage",
       text: message,
       timestamp: new Date(),
     };
+
     handleNewChat(message);
     saveMessageToMongoDB(newMessage);
     setMessages((prevMessages) => [...prevMessages, newMessage]);
     setMessage("");
   };
 
-  const handleNewChat = (message) => {
-    console.log("Sent message:", message);
+  const handleNewChat = (newMessage) => {
+    console.log("Sent message:", newMessage);
 
     const socket = socketRef.current;
 
     if (socket.readyState === WebSocket.OPEN) {
-      socket.send(JSON.stringify(message));
+      socket.send(JSON.stringify(newMessage)); // Send the JSON stringified newMessage
     }
   };
+
   const saveMessageToMongoDB = async (message) => {
     try {
       const response = await fetch("http://localhost:3000/messages", {
@@ -97,19 +98,24 @@ const NewChatSection = ({ navigation }) => {
     const handleReceivedMessage = (event) => {
       try {
         const receivedMessage = JSON.parse(event.data);
-        const newMessage = {
-          type: "receivedMessage",
-          text: receivedMessage,
-          timestamp: new Date(),
-        };
-        setReceivedMessages((prevMessages) => [...prevMessages, newMessage]);
-        saveMessageToMongoDB(newMessage);
-        console.log("Received message from server!:", receivedMessage);
+        if (typeof receivedMessage.text === "string") {
+          const newMessage = {
+            type: "receivedMessage",
+            text: receivedMessage.text, // Extract the text property
+            timestamp: new Date(),
+          };
+          setReceivedMessages((prevMessages) => [...prevMessages, newMessage]);
+          saveMessageToMongoDB(newMessage);
+        } else {
+          console.error(
+            "Received message is not in the expected format:",
+            receivedMessage
+          );
+        }
       } catch (error) {
         console.error("Error parsing received message:", error);
       }
     };
-
     socket.addEventListener("message", handleReceivedMessage);
 
     return () => {

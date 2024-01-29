@@ -11,7 +11,7 @@ import {
   signOut,
 } from "firebase/auth";
 auth = FIREBASE_AUTH;
-const MenuModal = ({ isVisible, onOpen, onClose, logout, navigation }) => {
+const MenuModal = ({ isVisible, onOpen, onClose, navigation }) => {
   const logoutGoogle = async () => {
     try {
       await signOut(auth);

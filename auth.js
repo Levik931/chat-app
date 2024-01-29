@@ -19,10 +19,6 @@ import {
   signOut,
 } from "firebase/auth";
 import * as Google from "expo-auth-session/providers/google";
-import * as WebBrowser from "expo-web-browser";
-
-// console.log("logout function in LoginPage:");
-// WebBrowser.mayInitWithUrlAsync();
 const LoginPage = ({ navigation }) => {
   console.log("logout function in LoginPage:");
   const [email, setEmail] = useState("");
