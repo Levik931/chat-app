@@ -15,6 +15,7 @@ const MenuModal = ({ isVisible, onOpen, onClose, navigation }) => {
   const logoutGoogle = async () => {
     try {
       await signOut(auth);
+      onClose();
       navigation.navigate("Login");
       console.log("User signed out!");
       // Navigate to login screen or do other actions after logout

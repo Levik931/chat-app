@@ -55,7 +55,7 @@ const NewChatSection = ({ navigation }) => {
       timestamp: new Date(),
     };
 
-    handleNewChat(message);
+    handleNewChat(newMessage);
     saveMessageToMongoDB(newMessage);
     setMessages((prevMessages) => [...prevMessages, newMessage]);
     setMessage("");
@@ -68,6 +68,7 @@ const NewChatSection = ({ navigation }) => {
 
     if (socket.readyState === WebSocket.OPEN) {
       socket.send(JSON.stringify(newMessage)); // Send the JSON stringified newMessage
+      console.log("JSON", JSON.stringify(newMessage));
     }
   };
 

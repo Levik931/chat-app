@@ -8,8 +8,9 @@ import {
   ImageBackground,
 } from "react-native";
 import { TextInput } from "react-native-gesture-handler";
-import { FIREBASE_AUTH } from "./firebaseConfig";
-import * as SecureStore from "expo-secure-store";
+import { FIREBASE_AUTH, FIREBASE_FIRESTORE } from "./firebaseConfig";
+import { doc, setDoc, collection, addDoc } from "firebase/firestore";
+import { getFirestore } from "firebase/firestore";
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
@@ -20,7 +21,6 @@ import {
 } from "firebase/auth";
 import * as Google from "expo-auth-session/providers/google";
 const LoginPage = ({ navigation }) => {
-  console.log("logout function in LoginPage:");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -35,6 +35,7 @@ const LoginPage = ({ navigation }) => {
   });
 
   const auth = FIREBASE_AUTH;
+  const db = FIREBASE_FIRESTORE;
 
   useEffect(() => {
     if (response?.type === "success") {
@@ -44,9 +45,22 @@ const LoginPage = ({ navigation }) => {
         setLoading(true);
         try {
           const credential = GoogleAuthProvider.credential(id_token);
-          await signInWithCredential(auth, credential);
+          const userCredential = await signInWithCredential(auth, credential);
+          const user = userCredential.user;
           console.log("Login successful");
+          console.log("USER,", user.uid);
           navigation.navigate("Home");
+          const userData = {
+            uid: user.uid,
+            displayName: user.displayName || "",
+            email: user.email,
+            emailVerified: user.emailVerified,
+            photoURL: user.photoURL || "",
+            // Add more fields as needed
+          };
+
+          // Save user data to Firestore
+          // await setDoc(doc(db, "users", user.uid), userData);
         } catch (error) {
           console.error(error);
           alert("Sign In Failed: " + error.message);
