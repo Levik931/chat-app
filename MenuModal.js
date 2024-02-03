@@ -1,5 +1,5 @@
 // MenuModal.js
-import React from "react";
+import React, { useEffect } from "react";
 import { View, Text, TouchableOpacity, Modal, StyleSheet } from "react-native";
 import { FIREBASE_AUTH } from "./firebaseConfig";
 import {
@@ -10,7 +10,17 @@ import {
   signInWithCredential,
   signOut,
 } from "firebase/auth";
+import {
+  getFirestore,
+  collection,
+  query,
+  getDocs,
+  doc,
+  addDoc,
+  setDoc,
+} from "firebase/firestore";
 auth = FIREBASE_AUTH;
+
 const MenuModal = ({ isVisible, onOpen, onClose, navigation }) => {
   const logoutGoogle = async () => {
     try {
@@ -32,10 +42,7 @@ const MenuModal = ({ isVisible, onOpen, onClose, navigation }) => {
       onRequestClose={onClose}
     >
       <View style={styles.menuContainer}>
-        <TouchableOpacity
-          onPress={() => onMenuItemPress("Edit")}
-          style={styles.menuItem}
-        >
+        <TouchableOpacity onPress={null} style={styles.menuItem}>
           <Text style={styles.menuItemText}>Edit</Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={logoutGoogle} style={styles.menuItem}>

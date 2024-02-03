@@ -8,9 +8,17 @@ import {
   ImageBackground,
 } from "react-native";
 import { TextInput } from "react-native-gesture-handler";
-import { FIREBASE_AUTH, FIREBASE_FIRESTORE } from "./firebaseConfig";
-import { doc, setDoc, collection, addDoc } from "firebase/firestore";
-import { getFirestore } from "firebase/firestore";
+import { FIREBASE_AUTH } from "./firebaseConfig";
+import {
+  getFirestore,
+  collection,
+  query,
+  getDocs,
+  doc,
+  addDoc,
+  setDoc,
+} from "firebase/firestore";
+
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
@@ -35,11 +43,29 @@ const LoginPage = ({ navigation }) => {
   });
 
   const auth = FIREBASE_AUTH;
-  const db = FIREBASE_FIRESTORE;
+  // useEffect(() => {
+  //   // Initialize Firestore and reference to the collection
+  //   const db = getFirestore();
+  //   const userRef = collection(db, "users");
+
+  //   // Define the async function to add data
+  //   const addData = async () => {
+  //     try {
+  //       let user = { name: "tim", age: 12 };
+  //       await addDoc(userRef, user);
+  //     } catch (error) {
+  //       alert(error); // Handle errors appropriately
+  //     }
+  //   };
+
+  //   addData(); // Execute the function
+  // }, [response]); // Empty dependency array means this runs once on component mount
 
   useEffect(() => {
     if (response?.type === "success") {
       const { id_token } = response.params;
+      const db = getFirestore();
+      // const userRef = collection(db, "users");
 
       const signInWithGoogle = async () => {
         setLoading(true);
@@ -58,9 +84,10 @@ const LoginPage = ({ navigation }) => {
             photoURL: user.photoURL || "",
             // Add more fields as needed
           };
+          const userDocRef = doc(db, "users", user.uid);
 
           // Save user data to Firestore
-          // await setDoc(doc(db, "users", user.uid), userData);
+          await setDoc(userDocRef, userData);
         } catch (error) {
           console.error(error);
           alert("Sign In Failed: " + error.message);
