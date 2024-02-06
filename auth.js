@@ -43,23 +43,6 @@ const LoginPage = ({ navigation }) => {
   });
 
   const auth = FIREBASE_AUTH;
-  // useEffect(() => {
-  //   // Initialize Firestore and reference to the collection
-  //   const db = getFirestore();
-  //   const userRef = collection(db, "users");
-
-  //   // Define the async function to add data
-  //   const addData = async () => {
-  //     try {
-  //       let user = { name: "tim", age: 12 };
-  //       await addDoc(userRef, user);
-  //     } catch (error) {
-  //       alert(error); // Handle errors appropriately
-  //     }
-  //   };
-
-  //   addData(); // Execute the function
-  // }, [response]); // Empty dependency array means this runs once on component mount
 
   useEffect(() => {
     if (response?.type === "success") {

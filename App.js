@@ -1,47 +1,29 @@
 import React, { useState, useEffect } from "react";
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  SafeAreaView,
-  ImageBackground,
-  ScrollView,
-  KeyboardAvoidingView,
-  Platform,
-  TouchableWithoutFeedback,
-  Keyboard,
-  ActivityIndicator,
-} from "react-native";
-import Icon from "react-native-vector-icons/FontAwesome";
-import MenuModal from "./MenuModal";
+import { View, StyleSheet, ActivityIndicator } from "react-native";
+import { onAuthStateChanged } from "firebase/auth";
+import { FIREBASE_AUTH } from "./firebaseConfig";
 import NewChatSection from "./NewChatSection";
 import LoginPage from "./auth";
-import { NavigationContainer } from "@react-navigation/native";
-import {
-  createStackNavigator,
-  CardStyleInterpolators,
-} from "@react-navigation/stack";
-import {
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  GoogleAuthProvider,
-  onAuthStateChanged,
-} from "firebase/auth";
-import { FIREBASE_AUTH } from "./firebaseConfig";
-import LottieView from "lottie-react-native";
 import HomeScreen from "./homeScreen";
-
-const Stack = createStackNavigator();
+import MenuModal from "./MenuModal";
+import ThreeButtonComponent from "./homeScreenNavigators"; // Ensure this import is correct
+import LottieView from "lottie-react-native";
 
 const App = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [currentScreen, setCurrentScreen] = useState("login"); // Initial screen
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(FIREBASE_AUTH, (user) => {
-      setIsAuthenticated(!!user);
-      // Remove the direct setLoading(false) here
-      setTimeout(() => setLoading(false), 2500);
+      if (user) {
+        setIsAuthenticated(true);
+        setCurrentScreen("home"); // Default to home if authenticated
+      } else {
+        setIsAuthenticated(false);
+        setCurrentScreen("login"); // Show login if not authenticated
+      }
+      setTimeout(() => setLoading(false), 2300);
     });
 
     return () => unsubscribe();
@@ -64,37 +46,44 @@ const App = () => {
     );
   }
 
-  return (
-    <NavigationContainer>
-      <Stack.Navigator
-        initialRouteName={isAuthenticated ? "Home" : "Login"}
-        screenOptions={{
-          headerShown: false,
-          cardStyleInterpolator: CardStyleInterpolators.forNoAnimation,
-        }}
-      >
-        <Stack.Screen name="Home" component={HomeScreen} />
-        <Stack.Screen
-          name="Chat"
-          component={NewChatSection}
-          options={{
-            cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
-          }} // Normal stack effect for Chat screen
-        />
+  const renderScreen = () => {
+    switch (currentScreen) {
+      case "home":
+        return <HomeScreen />;
+      case "login":
+        return <LoginPage />;
+      case "chat":
+        return <NewChatSection />;
+      case "menu":
+        return <MenuModal />;
+      default:
+        return <LoginPage />;
+    }
+  };
 
-        <Stack.Screen name="Login" component={LoginPage} />
-      </Stack.Navigator>
-    </NavigationContainer>
+  return (
+    <View style={styles.fullScreen}>
+      {renderScreen()}
+      {currentScreen !== "chat" && (
+        <ThreeButtonComponent
+          onNavigate={(screenName) => setCurrentScreen(screenName)}
+          currentScreen={currentScreen}
+        />
+      )}
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  // animationContainer: {
-  //   backgroundColor: "#fff",
-  //   alignItems: "center",
-  //   justifyContent: "center",
-  //   flex: 1,
-  // },
+  centered: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  fullScreen: {
+    flex: 1,
+    backgroundColor: "black", // Ensure this matches your desired background
+  },
 });
 
 export default App;
