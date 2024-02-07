@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   View,
   Text,
@@ -13,7 +13,11 @@ import {
   Keyboard,
   ActivityIndicator,
   TextInput,
+  Animated,
+  LayoutAnimation,
+  UIManager,
 } from "react-native";
+import Ionicons from "react-native-vector-icons/Ionicons";
 import Icon from "react-native-vector-icons/FontAwesome";
 import MenuModal from "./MenuModal";
 import UserSearch from "./userSearch";
@@ -24,72 +28,77 @@ const HomeScreen = ({ navigation }) => {
   const [isMenuVisible, setMenuVisibility] = useState(false);
   // const [isChatVisible, setIsChatVisible] = useState(false);
   const [messages, setMessages] = useState([]);
+  const [isSearchActive, setIsSearchActive] = useState(false);
+  const fadeAnim = useRef(new Animated.Value(1)).current; // Initial opacity for other content
 
   const handleScreenPress = () => {
     Keyboard.dismiss();
+    // setIsSearchActive(false);
   };
+  if (Platform.OS === "android") {
+    if (UIManager.setLayoutAnimationEnabledExperimental) {
+      UIManager.setLayoutAnimationEnabledExperimental(true);
+    }
+  }
+  useEffect(() => {
+    // Configure the animation
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
 
-  // const handleMenuItemPress = (item) => {
-  //   console.log(`Pressed ${item}`);
-  //   closeMenu();
-  // };
-
-  // const openMenu = () => {
-  //   setMenuVisibility(true);
-  // };
-
-  // const closeMenu = () => {
-  //   setMenuVisibility(false);
-  // };
-
-  // const handleUserSelect = (uid) => {
-  //   console.log("Selected user UID:", uid);
-  //   //Here you can initiate the chat using the selected user's UID
-  // };
+    if (isSearchActive) {
+      Animated.timing(fadeAnim, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
+    } else {
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
+    }
+  }, [isSearchActive]);
 
   return (
     <TouchableWithoutFeedback onPress={handleScreenPress}>
       <SafeAreaView style={styles.safeAreaContainer}>
-        <Text style={styles.messagesHeading}>Messages</Text>
-        <View style={styles.searchContainer}>
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Search..."
-            placeholderTextColor="#999"
-            onChangeText={(text) => console.log(text)} // Replace with your actual search handling logic
-          />
-          <Icon
-            name="search"
-            size={20}
-            color="#999"
-            style={styles.searchIcon}
-          />
-        </View>
-        <TouchableOpacity style={styles.chatBox}>
-          <Text style={styles.messageText}>View</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.chatBox}>
-          <Text style={styles.messageText}>View</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.chatBox}>
-          <Text style={styles.messageText}>View</Text>
-        </TouchableOpacity>
-      </SafeAreaView>
-      {/* <ThreeButtonComponent /> */}
+        <ScrollView
+          style={styles.scrollViewStyle}
+          contentContainerStyle={styles.scrollViewContent}
+          scrollEnabled={!isSearchActive} // Disable scrolling when search is active
+        >
+          <Animated.View style={{ opacity: fadeAnim }}>
+            {!isSearchActive && (
+              <View style={styles.messagesHeaderContainer}>
+                <Text style={styles.messagesHeading}>Messages</Text>
+                <TouchableOpacity style={styles.newChatIconContainer}>
+                  <Ionicons name="add-circle-outline" size={40} color="white" />
+                </TouchableOpacity>
+              </View>
+            )}
+          </Animated.View>
 
-      {/* </ScrollView>
-        </KeyboardAvoidingView> */}
+          <UserSearch
+            onSearchFocus={() => setIsSearchActive(true)}
+            onSearchBlur={() => setIsSearchActive(false)}
+          />
+
+          <Animated.View style={{ opacity: fadeAnim }}>
+            {!isSearchActive && (
+              <>
+                <TouchableOpacity style={styles.chatBox}>
+                  <Text style={styles.messageText}>View</Text>
+                </TouchableOpacity>
+                {/* Repeat for other components */}
+              </>
+            )}
+          </Animated.View>
+        </ScrollView>
+      </SafeAreaView>
     </TouchableWithoutFeedback>
   );
 };
-
 const styles = StyleSheet.create({
-  // animationContainer: {
-  //   backgroundColor: "#fff",
-  //   alignItems: "center",
-  //   justifyContent: "center",
-  //   flex: 1,
-  // },
   keyboardAvoidingContainer: {
     flex: 1,
   },
@@ -155,22 +164,18 @@ const styles = StyleSheet.create({
     marginLeft: 12,
     // fontFamily: "YourCustomFontFamily", // Uncomment and replace with your custom font if you have one
   },
-  searchContainer: {
+
+  messagesHeaderContainer: {
     flexDirection: "row",
-    backgroundColor: "#545151",
-    borderRadius: 10,
-    padding: 10,
-    paddingHorizontal: 15,
-    marginHorizontal: 10,
-    marginBottom: 20,
     alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 10, // Adjust padding as needed
+    marginBottom: 10, // Space below the header
   },
-  searchInput: {
-    flex: 1,
-    paddingRight: 10,
-    color: "#E3E3E3",
-    fontSize: 16,
-    fontWeight: "bold",
+  newChatIconContainer: {
+    // Style for the touchable opacity around the icon
+    marginTop: 10, // Space from the heading
+    padding: 10, // Adjust padding for touch area
   },
 });
 

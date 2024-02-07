@@ -7,7 +7,7 @@ import {
   StyleSheet,
   ImageBackground,
 } from "react-native";
-import { TextInput } from "react-native-gesture-handler";
+import { TextInput } from "react-native";
 import { FIREBASE_AUTH } from "./firebaseConfig";
 import {
   getFirestore,
@@ -58,7 +58,7 @@ const LoginPage = ({ navigation }) => {
           const user = userCredential.user;
           console.log("Login successful");
           console.log("USER,", user.uid);
-          navigation.navigate("Home");
+          // navigation.navigate("Home");
           const userData = {
             uid: user.uid,
             displayName: user.displayName || "",

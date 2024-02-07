@@ -6,6 +6,7 @@ import {
   FlatList,
   Text,
   TouchableOpacity,
+  StyleSheet,
 } from "react-native";
 import {
   getFirestore,
@@ -14,8 +15,9 @@ import {
   where,
   getDocs,
 } from "firebase/firestore";
+import Icon from "react-native-vector-icons/FontAwesome";
 
-const UserSearch = ({ onSelectUser }) => {
+const UserSearch = ({ onSelectUser, onSearchFocus, onSearchBlur }) => {
   const [searchText, setSearchText] = useState("");
   const [users, setUsers] = useState([]);
 
@@ -43,15 +45,60 @@ const UserSearch = ({ onSelectUser }) => {
   };
 
   return (
-    <View>
+    <View style={styles.searchContainer}>
       <TextInput
-        placeholder="Search users by name..."
+        placeholder="Search"
+        style={styles.searchInput}
         value={searchText}
-        onChangeText={setSearchText}
+        placeholderTextColor="#999"
+        onChangeText={(text) => setSearchText(text)}
+        onFocus={onSearchFocus} // Use the prop here
+        onBlur={onSearchBlur} // And here
       />
-      <Button title="Search" onPress={searchUsers} />
+      <Icon name="search" size={20} color="#999" style={styles.searchIcon} />
 
-      <FlatList
+      {/* <FlatList
+        data={users}
+        // horizontal={true}
+        keyExtractor={(item) => item.uid}
+        renderItem={({ item }) => (
+          <TouchableOpacity onPress={() => handleSelectUser(item.uid)}>
+            <Text>{item.displayName}</Text>
+          </TouchableOpacity>
+        )}
+      /> */}
+    </View>
+  );
+};
+
+export default UserSearch;
+
+const styles = StyleSheet.create({
+  searchInput: {
+    flex: 1,
+    // paddingRight: 10,
+    color: "#E3E3E3",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  searchContainer: {
+    flexDirection: "row",
+    backgroundColor: "#545151",
+    borderRadius: 10,
+    padding: 10,
+    paddingHorizontal: 15,
+    marginHorizontal: 10,
+    marginBottom: 20,
+    alignItems: "center",
+  },
+  searchIcon: {
+    // Add padding if needed, for touchable area and alignment
+    paddingRight: 1,
+  },
+});
+
+{
+  /* <FlatList
         data={users}
         keyExtractor={(item) => item.uid}
         renderItem={({ item }) => (
@@ -59,9 +106,5 @@ const UserSearch = ({ onSelectUser }) => {
             <Text>{item.displayName}</Text>
           </TouchableOpacity>
         )}
-      />
-    </View>
-  );
-};
-
-export default UserSearch;
+      /> */
+}
