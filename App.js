@@ -92,7 +92,11 @@ const App = () => {
             <Stack.Screen
               name="UserSearch"
               component={UserSearch}
-              options={{ headerShown: false }}
+              options={{
+                headerShown: false,
+                presentation: "modal",
+                animation: "slide_from_bottom",
+              }}
             />
           </>
         ) : (

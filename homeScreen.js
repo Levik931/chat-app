@@ -16,12 +16,11 @@ import {
 } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import MenuModal from "./MenuModal";
-import UserSearch from "./userSearch";
 import ChatSearch from "./chatSearch_pleaseModify";
 
 const HomeScreen = ({ navigation }) => {
   const [isSearchActive, setIsSearchActive] = useState(false);
-  const fadeAnim = useRef(new Animated.Value(1)).current; // Initial opacity for other content
+  const fadeAnim = useRef(new Animated.Value(1)).current;
 
   const handleScreenPress = () => {
     Keyboard.dismiss();
@@ -32,7 +31,6 @@ const HomeScreen = ({ navigation }) => {
     }
   }
   useEffect(() => {
-    // Configure the animation
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
 
     if (isSearchActive) {

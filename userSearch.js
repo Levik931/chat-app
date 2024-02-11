@@ -17,8 +17,14 @@ import {
 } from "firebase/firestore";
 import Icon from "react-native-vector-icons/FontAwesome";
 import debounce from "lodash.debounce";
+import { Navigation } from "react-native-navigation";
 
-const UserSearch = ({ onSelectUser, onSearchFocus, onSearchBlur }) => {
+const UserSearch = ({
+  onSelectUser,
+  onSearchFocus,
+  onSearchBlur,
+  navigation,
+}) => {
   const [searchText, setSearchText] = useState("");
   const [users, setUsers] = useState([]);
   const [isFocused, setIsFocused] = useState(false); // Track focus state
@@ -92,7 +98,17 @@ const UserSearch = ({ onSelectUser, onSearchFocus, onSearchBlur }) => {
             <TouchableOpacity
               key={user.uid}
               onPress={() => {
-                onSelectUser(user.uid);
+                // onSelectUser(user.uid);
+                navigation.goBack();
+
+                setTimeout(
+                  () =>
+                    navigation.navigate("Chat", {
+                      uid: user.uid,
+                      displayName: user.displayName,
+                    }),
+                  2
+                );
                 setIsFocused(false); // Optionally hide results after selection
               }}
               style={styles.userItem}
@@ -108,10 +124,6 @@ const UserSearch = ({ onSelectUser, onSearchFocus, onSearchBlur }) => {
 
 export default UserSearch;
 
-// Assume styles object remains unchanged for brevity
-
-// Styles remain unchanged
-
 const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
@@ -121,7 +133,7 @@ const styles = StyleSheet.create({
   },
   SafeArea: {
     flex: 1,
-    backgroundColor: "black",
+    backgroundColor: "#242323",
   },
   searchContainer: {
     flexDirection: "row",
@@ -131,6 +143,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     marginHorizontal: 10,
     marginBottom: 20,
+    marginTop: 20,
     alignItems: "center",
   },
   searchIcon: {
