@@ -5,35 +5,26 @@ import {
   TouchableOpacity,
   StyleSheet,
   SafeAreaView,
-  ImageBackground,
   ScrollView,
   KeyboardAvoidingView,
   Platform,
   TouchableWithoutFeedback,
   Keyboard,
-  ActivityIndicator,
-  TextInput,
   Animated,
   LayoutAnimation,
   UIManager,
 } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
-import Icon from "react-native-vector-icons/FontAwesome";
 import MenuModal from "./MenuModal";
 import UserSearch from "./userSearch";
-import ThreeButtonComponent from "./homeScreenNavigators";
-import peakpx from "./peakpx.jpg";
+import ChatSearch from "./chatSearch_pleaseModify";
 
 const HomeScreen = ({ navigation }) => {
-  const [isMenuVisible, setMenuVisibility] = useState(false);
-  // const [isChatVisible, setIsChatVisible] = useState(false);
-  const [messages, setMessages] = useState([]);
   const [isSearchActive, setIsSearchActive] = useState(false);
   const fadeAnim = useRef(new Animated.Value(1)).current; // Initial opacity for other content
 
   const handleScreenPress = () => {
     Keyboard.dismiss();
-    // setIsSearchActive(false);
   };
   if (Platform.OS === "android") {
     if (UIManager.setLayoutAnimationEnabledExperimental) {
@@ -61,9 +52,11 @@ const HomeScreen = ({ navigation }) => {
 
   return (
     <TouchableWithoutFeedback onPress={handleScreenPress}>
-      <SafeAreaView style={styles.safeAreaContainer}>
+      <SafeAreaView
+        style={[styles.safeAreaContainer, { backgroundColor: "black" }]}
+      >
         <ScrollView
-          style={styles.scrollViewStyle}
+          style={[styles.scrollViewStyle, { backgroundColor: "black" }]} // Added backgroundColor: 'black'
           contentContainerStyle={styles.scrollViewContent}
           scrollEnabled={!isSearchActive} // Disable scrolling when search is active
         >
@@ -71,16 +64,20 @@ const HomeScreen = ({ navigation }) => {
             {!isSearchActive && (
               <View style={styles.messagesHeaderContainer}>
                 <Text style={styles.messagesHeading}>Messages</Text>
-                <TouchableOpacity style={styles.newChatIconContainer}>
+                <TouchableOpacity
+                  style={styles.newChatIconContainer}
+                  onPress={() => navigation.navigate("UserSearch")}
+                >
                   <Ionicons name="add-circle-outline" size={40} color="white" />
                 </TouchableOpacity>
               </View>
             )}
           </Animated.View>
 
-          <UserSearch
+          <ChatSearch
             onSearchFocus={() => setIsSearchActive(true)}
             onSearchBlur={() => setIsSearchActive(false)}
+            onSelectUser={(uid) => navigation.navigate("Chat", { uid })}
           />
 
           <Animated.View style={{ opacity: fadeAnim }}>
@@ -98,6 +95,7 @@ const HomeScreen = ({ navigation }) => {
     </TouchableWithoutFeedback>
   );
 };
+
 const styles = StyleSheet.create({
   keyboardAvoidingContainer: {
     flex: 1,
@@ -107,7 +105,7 @@ const styles = StyleSheet.create({
   },
   safeAreaContainer: {
     flex: 1,
-    marginTop: 50,
+    // marginTop: 50,
   },
   backgroundImage: {
     flex: 1,

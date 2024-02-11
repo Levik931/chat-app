@@ -135,7 +135,7 @@ const NewChatSection = ({ navigation }) => {
     >
       <SafeAreaView style={styles.safeAreaContainer}>
         <TouchableOpacity
-          onPress={() => navigation.navigate("Home")}
+          onPress={() => navigation.goBack()}
           style={styles.closeButton}
         >
           <Svg

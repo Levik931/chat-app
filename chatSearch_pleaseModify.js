@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   StyleSheet,
   ScrollView,
-  SafeAreaView,
 } from "react-native";
 import {
   getFirestore,
@@ -18,7 +17,7 @@ import {
 import Icon from "react-native-vector-icons/FontAwesome";
 import debounce from "lodash.debounce";
 
-const UserSearch = ({ onSelectUser, onSearchFocus, onSearchBlur }) => {
+const ChatSearch = ({ onSelectUser, onSearchFocus, onSearchBlur }) => {
   const [searchText, setSearchText] = useState("");
   const [users, setUsers] = useState([]);
   const [isFocused, setIsFocused] = useState(false); // Track focus state
@@ -72,7 +71,7 @@ const UserSearch = ({ onSelectUser, onSearchFocus, onSearchBlur }) => {
   };
 
   return (
-    <SafeAreaView style={styles.SafeArea}>
+    <>
       <View style={styles.searchContainer}>
         <TextInput
           placeholder="Search"
@@ -102,11 +101,11 @@ const UserSearch = ({ onSelectUser, onSearchFocus, onSearchBlur }) => {
           ))}
         </ScrollView>
       )}
-    </SafeAreaView>
+    </>
   );
 };
 
-export default UserSearch;
+export default ChatSearch;
 
 // Assume styles object remains unchanged for brevity
 
@@ -118,10 +117,6 @@ const styles = StyleSheet.create({
     color: "#E3E3E3",
     fontSize: 16,
     fontWeight: "bold",
-  },
-  SafeArea: {
-    flex: 1,
-    backgroundColor: "black",
   },
   searchContainer: {
     flexDirection: "row",
