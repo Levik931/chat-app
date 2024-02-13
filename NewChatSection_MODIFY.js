@@ -12,17 +12,6 @@ import {
 } from "react-native";
 import Svg, { Path } from "react-native-svg";
 import Icon from "react-native-vector-icons/Feather";
-import {
-  getFirestore,
-  collection,
-  query,
-  getDocs,
-  doc,
-  serverTimestamp,
-  addDoc,
-  setDoc,
-} from "firebase/firestore";
-import { FIREBASE_AUTH } from "./firebaseConfig";
 
 const NewChatSection = ({ navigation }) => {
   const [messages, setMessages] = useState([]);
@@ -31,43 +20,109 @@ const NewChatSection = ({ navigation }) => {
   const socketRef = useRef(null);
   const allMessages = [...messages, ...receivedMessages];
   const scrollViewRef = useRef();
-  const db = getFirestore();
-  const auth = FIREBASE_AUTH;
 
-  const handleSend = async () => {
+  const fetchMessagesFromDatabase = async () => {
+    try {
+      const response = await fetch("http://localhost:3000/messages");
+      if (!response.ok) {
+        throw new Error("Failed to fetch messages from the database");
+      }
+      const fetchedMessages = await response.json();
+      setMessages(fetchedMessages);
+    } catch (error) {
+      console.error("Error fetching messages from the database:", error);
+    }
+  };
+  useEffect(() => {
+    fetchMessagesFromDatabase();
+    const socket = new WebSocket("ws://192.168.1.191:8080");
+
+    socketRef.current = socket;
+
+    return () => {
+      socket.close();
+      console.log("Server Disconnected");
+    };
+  }, []);
+
+  const handleSend = () => {
     if (message.trim() === "") {
       return;
     }
     const newMessage = {
+      type: "sentMessage",
       text: message,
-      timestamp: serverTimestamp(), // Use Firestore serverTimestamp for consistency
-      // Assuming you have a way to identify the sender, e.g., the current user's ID
-      senderId: auth.currentUser.uid, // Adjust according to your auth setup
-      type: "sentMessage", // This can be adjusted or omitted based on your requirements
+      timestamp: new Date(),
     };
-    try {
-      // Reference to the "messages" subcollection in the "first-chat" chat document
-      const messagesRef = collection(db, "chats", "first-chat", "messages");
 
-      // Add the new message to the Firestore
-      await addDoc(messagesRef, newMessage);
-
-      // If you have a callback or state update to handle a new chat message
-      handleNewChat(newMessage); // This function needs to be defined to handle UI update or similar action
-      setMessages((prevMessages) => [...prevMessages, newMessage]); // Update your local state to include the new message
-
-      // Clear the input field
-      setMessage("");
-    } catch (error) {
-      console.error("Error sending message: ", error);
-      // Handle any errors, such as showing an error message to the user
-    }
-    // saveMessageToMongoDB(newMessage);
+    handleNewChat(newMessage);
+    saveMessageToMongoDB(newMessage);
     setMessages((prevMessages) => [...prevMessages, newMessage]);
     setMessage("");
   };
 
-  const handleNewChat = (newMessage) => {};
+  const handleNewChat = (newMessage) => {
+    console.log("Sent message:", newMessage);
+
+    const socket = socketRef.current;
+
+    if (socket.readyState === WebSocket.OPEN) {
+      socket.send(JSON.stringify(newMessage)); // Send the JSON stringified newMessage
+      console.log("JSON", JSON.stringify(newMessage));
+    }
+  };
+
+  const saveMessageToMongoDB = async (message) => {
+    try {
+      const response = await fetch("http://localhost:3000/messages", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(message),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to save message to MongoDB");
+      }
+
+      // The message has been successfully saved to MongoDB
+      console.log("Message saved to MongoDB:", message);
+    } catch (error) {
+      console.error("Error saving message to MongoDB:", error);
+    }
+  };
+
+  useEffect(() => {
+    const socket = socketRef.current;
+
+    const handleReceivedMessage = (event) => {
+      try {
+        const receivedMessage = JSON.parse(event.data);
+        if (typeof receivedMessage.text === "string") {
+          const newMessage = {
+            type: "receivedMessage",
+            text: receivedMessage.text, // Extract the text property
+            timestamp: new Date(),
+          };
+          setReceivedMessages((prevMessages) => [...prevMessages, newMessage]);
+          saveMessageToMongoDB(newMessage);
+        } else {
+          console.error(
+            "Received message is not in the expected format:",
+            receivedMessage
+          );
+        }
+      } catch (error) {
+        console.error("Error parsing received message:", error);
+      }
+    };
+    socket.addEventListener("message", handleReceivedMessage);
+
+    return () => {
+      socket.removeEventListener("message", handleReceivedMessage);
+    };
+  }, []);
 
   allMessages.sort((a, b) => a.timestamp - b.timestamp);
 

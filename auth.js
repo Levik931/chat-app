@@ -67,10 +67,10 @@ const LoginPage = ({ navigation }) => {
             photoURL: user.photoURL || "",
             // Add more fields as needed
           };
-          const userDocRef = doc(db, "users", user.uid);
+          // const userDocRef = doc(db, "users", user.uid);
 
           // Save user data to Firestore
-          await setDoc(userDocRef, userData);
+          await setDoc(doc(db, "users", user.uid), userData);
         } catch (error) {
           console.error(error);
           alert("Sign In Failed: " + error.message);

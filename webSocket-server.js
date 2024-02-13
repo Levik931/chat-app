@@ -14,7 +14,7 @@ server.on("connection", (socket) => {
 
       // Broadcast the received message to other clients
       clients.forEach((client) => {
-        if (client === socket) {
+        if (client !== socket) {
           client.send(JSON.stringify(parsedMessage));
         }
       });
