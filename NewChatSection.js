@@ -34,12 +34,17 @@ const NewChatSection = ({ navigation, route }) => {
   const scrollViewRef = useRef();
   const db = getFirestore();
   const auth = FIREBASE_AUTH;
+  const { uid, displayName } = route.params;
+  const userUIDs = [auth.currentUser.uid, uid].sort();
+  const chatId = userUIDs.join("-");
+  const chatRef = doc(db, "chats", chatId);
+  const messagesRef = collection(db, "chats", chatId, "messages");
 
   const handleSend = async () => {
     if (message.trim() === "") {
       return;
     }
-    const { uid, displayName } = route.params;
+
     const newMessage = {
       text: message,
       timestamp: serverTimestamp(),
@@ -49,31 +54,21 @@ const NewChatSection = ({ navigation, route }) => {
       receiverName: displayName,
       type: "sentMessage",
     };
-    const users = {
-      senderName: auth.currentUser.displayName,
-      receiverName: displayName,
-      lastMessage: message,
-      lastMessageTimestamp: serverTimestamp(),
-    };
-    try {
-      const userUIDs = [auth.currentUser.uid, uid].sort();
-      const chatId = userUIDs.join("-");
-      const chatRef = doc(db, "chats", chatId);
-      const messagesRef = collection(db, "chats", chatId, "messages");
-      await addDoc(messagesRef, newMessage);
-      await setDoc(chatRef, { users }, { merge: true });
 
-      handleNewChat(newMessage);
-      setMessages((prevMessages) => [...prevMessages, newMessage]);
+    try {
+      await addDoc(messagesRef, newMessage);
+
+      // handleNewChat(newMessage);
+      // setMessages((prevMessages) => [...prevMessages, newMessage]);
       setMessage("");
     } catch (error) {
       console.error("Error sending message: ", error);
     }
   };
 
-  const handleNewChat = (newMessage) => {};
+  // const handleNewChat = (newMessage) => {};
 
-  allMessages.sort((a, b) => a.timestamp - b.timestamp);
+  // allMessages.sort((a, b) => a.timestamp - b.timestamp);
 
   useEffect(() => {
     const receiverUID = route.params?.uid;
@@ -93,6 +88,16 @@ const NewChatSection = ({ navigation, route }) => {
         return msg;
       });
       setMessages(fetchedMessages);
+      if (fetchedMessages.length > 0) {
+        const lastMessage = fetchedMessages[fetchedMessages.length - 1];
+        const users = {
+          senderName: auth.currentUser.displayName,
+          receiverName: displayName,
+          lastMessage: lastMessage.text,
+          lastMessageTimestamp: serverTimestamp(),
+        };
+        setDoc(chatRef, { users }, { merge: true });
+      }
     });
 
     return () => unsubscribe();
