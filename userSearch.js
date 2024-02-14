@@ -109,7 +109,7 @@ const UserSearch = ({
                     }),
                   2
                 );
-                setIsFocused(false); // Optionally hide results after selection
+                setIsFocused(false);
               }}
               style={styles.userItem}
             >

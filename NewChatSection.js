@@ -18,17 +18,18 @@ import {
   query,
   getDocs,
   doc,
+  onSnapshot,
   serverTimestamp,
+  orderBy,
   addDoc,
   setDoc,
 } from "firebase/firestore";
 import { FIREBASE_AUTH } from "./firebaseConfig";
 
-const NewChatSection = ({ navigation }) => {
+const NewChatSection = ({ navigation, route }) => {
   const [messages, setMessages] = useState([]);
   const [message, setMessage] = useState("");
   const [receivedMessages, setReceivedMessages] = useState([]);
-  const socketRef = useRef(null);
   const allMessages = [...messages, ...receivedMessages];
   const scrollViewRef = useRef();
   const db = getFirestore();
@@ -38,38 +39,64 @@ const NewChatSection = ({ navigation }) => {
     if (message.trim() === "") {
       return;
     }
+    const { uid, displayName } = route.params;
     const newMessage = {
       text: message,
-      timestamp: serverTimestamp(), // Use Firestore serverTimestamp for consistency
-      // Assuming you have a way to identify the sender, e.g., the current user's ID
-      senderId: auth.currentUser.uid, // Adjust according to your auth setup
-      type: "sentMessage", // This can be adjusted or omitted based on your requirements
+      timestamp: serverTimestamp(),
+      senderName: auth.currentUser.displayName,
+      senderId: auth.currentUser.uid,
+      receiverId: uid,
+      receiverName: displayName,
+      type: "sentMessage",
+    };
+    const users = {
+      senderName: auth.currentUser.displayName,
+      receiverName: displayName,
+      lastMessage: message,
+      lastMessageTimestamp: serverTimestamp(),
     };
     try {
-      // Reference to the "messages" subcollection in the "first-chat" chat document
-      const messagesRef = collection(db, "chats", "first-chat", "messages");
-
-      // Add the new message to the Firestore
+      const userUIDs = [auth.currentUser.uid, uid].sort();
+      const chatId = userUIDs.join("-");
+      const chatRef = doc(db, "chats", chatId);
+      const messagesRef = collection(db, "chats", chatId, "messages");
       await addDoc(messagesRef, newMessage);
+      await setDoc(chatRef, { users }, { merge: true });
 
-      // If you have a callback or state update to handle a new chat message
-      handleNewChat(newMessage); // This function needs to be defined to handle UI update or similar action
-      setMessages((prevMessages) => [...prevMessages, newMessage]); // Update your local state to include the new message
-
-      // Clear the input field
+      handleNewChat(newMessage);
+      setMessages((prevMessages) => [...prevMessages, newMessage]);
       setMessage("");
     } catch (error) {
       console.error("Error sending message: ", error);
-      // Handle any errors, such as showing an error message to the user
     }
-    // saveMessageToMongoDB(newMessage);
-    setMessages((prevMessages) => [...prevMessages, newMessage]);
-    setMessage("");
   };
 
   const handleNewChat = (newMessage) => {};
 
   allMessages.sort((a, b) => a.timestamp - b.timestamp);
+
+  useEffect(() => {
+    const receiverUID = route.params?.uid;
+    const currentUserUID = auth.currentUser.uid;
+    const userUIDs = [currentUserUID, receiverUID].sort();
+    const chatId = userUIDs.join("-");
+    const messagesRef = collection(db, "chats", chatId, "messages");
+    const q = query(messagesRef, orderBy("timestamp"));
+
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      const fetchedMessages = querySnapshot.docs.map((doc) => {
+        let msg = doc.data();
+        msg.type =
+          msg.senderId === auth.currentUser.uid
+            ? "sentMessage"
+            : "receivedMessage";
+        return msg;
+      });
+      setMessages(fetchedMessages);
+    });
+
+    return () => unsubscribe();
+  }, [db]);
 
   return (
     <KeyboardAvoidingView
