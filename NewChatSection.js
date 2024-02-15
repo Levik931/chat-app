@@ -29,6 +29,7 @@ import { FIREBASE_AUTH } from "./firebaseConfig";
 const NewChatSection = ({ navigation, route }) => {
   const [messages, setMessages] = useState([]);
   const [message, setMessage] = useState("");
+  const [lastMesage, setLastMessage] = useState("");
   const [receivedMessages, setReceivedMessages] = useState([]);
   const allMessages = [...messages, ...receivedMessages];
   const scrollViewRef = useRef();
@@ -90,7 +91,9 @@ const NewChatSection = ({ navigation, route }) => {
       setMessages(fetchedMessages);
       if (fetchedMessages.length > 0) {
         const lastMessage = fetchedMessages[fetchedMessages.length - 1];
+        setLastMessage(lastMessage.text);
         const users = {
+          participants: [auth.currentUser.uid, uid].sort(),
           senderName: auth.currentUser.displayName,
           receiverName: displayName,
           lastMessage: lastMessage.text,

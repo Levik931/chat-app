@@ -16,11 +16,43 @@ import {
 } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import MenuModal from "./MenuModal";
-import ChatSearch from "./chatSearch_pleaseModify";
+// import ChatSearch from "./chatSearch_pleaseModify";
+import { FIREBASE_AUTH } from "./firebaseConfig";
+import {
+  Firestore,
+  getFirestore,
+  collection,
+  query,
+  where,
+  getDocs,
+} from "@firebase/firestore";
 
-const HomeScreen = ({ navigation }) => {
+const HomeScreen = ({ navigation, route }) => {
   const [isSearchActive, setIsSearchActive] = useState(false);
   const fadeAnim = useRef(new Animated.Value(1)).current;
+  const auth = FIREBASE_AUTH;
+  const db = getFirestore();
+  const [chats, setChats] = useState([]);
+
+  useEffect(() => {
+    const fetchChats = async () => {
+      const userUID = auth.currentUser.uid;
+      const chatsRef = collection(db, "chats");
+      // Assuming your chats collection documents have a field 'participants' with user UIDs
+      const q = query(
+        chatsRef,
+        where("users.participants", "array-contains", userUID)
+      );
+      const querySnapshot = await getDocs(q);
+      const chatsData = [];
+      querySnapshot.forEach((doc) => {
+        // Assuming each chat document has a 'lastMessage' field
+        chatsData.push({ id: doc.id, ...doc.data() });
+      });
+      setChats(chatsData); // Set your state with fetched chats
+    };
+    fetchChats();
+  }, [auth.currentUser.uid]); // Dependency on user UID to refetch if it changes
 
   const handleScreenPress = () => {
     Keyboard.dismiss();
@@ -47,7 +79,7 @@ const HomeScreen = ({ navigation }) => {
       }).start();
     }
   }, [isSearchActive]);
-
+  console.log("CHATS", chats);
   return (
     <TouchableWithoutFeedback onPress={handleScreenPress}>
       <SafeAreaView
@@ -72,19 +104,27 @@ const HomeScreen = ({ navigation }) => {
             )}
           </Animated.View>
 
-          <ChatSearch
+          {/* <ChatSearch
             onSearchFocus={() => setIsSearchActive(true)}
             onSearchBlur={() => setIsSearchActive(false)}
             onSelectUser={(uid) => navigation.navigate("Chat", { uid })}
-          />
-
+          /> */}
           <Animated.View style={{ opacity: fadeAnim }}>
             {!isSearchActive && (
               <>
-                <TouchableOpacity style={styles.chatBox}>
-                  <Text style={styles.messageText}>View</Text>
-                </TouchableOpacity>
-                {/* Repeat for other components */}
+                {chats.map((chat) => (
+                  <TouchableOpacity
+                    key={chat.id}
+                    style={styles.chatBox}
+                    onPress={() =>
+                      navigation.navigate("Chat", { chatId: chat.id })
+                    }
+                  >
+                    <Text style={styles.messageText}>
+                      {chat.users.lastMessage || "No messages"}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
               </>
             )}
           </Animated.View>
