@@ -25,6 +25,7 @@ import {
   query,
   where,
   getDocs,
+  find,
 } from "@firebase/firestore";
 
 const HomeScreen = ({ navigation, route }) => {
@@ -33,26 +34,42 @@ const HomeScreen = ({ navigation, route }) => {
   const auth = FIREBASE_AUTH;
   const db = getFirestore();
   const [chats, setChats] = useState([]);
-
   useEffect(() => {
     const fetchChats = async () => {
       const userUID = auth.currentUser.uid;
       const chatsRef = collection(db, "chats");
-      // Assuming your chats collection documents have a field 'participants' with user UIDs
+      const usersRef = collection(db, "users");
+
       const q = query(
         chatsRef,
         where("users.participants", "array-contains", userUID)
       );
       const querySnapshot = await getDocs(q);
-      const chatsData = [];
-      querySnapshot.forEach((doc) => {
-        // Assuming each chat document has a 'lastMessage' field
-        chatsData.push({ id: doc.id, ...doc.data() });
-      });
-      setChats(chatsData); // Set your state with fetched chats
+
+      let chatsData = [];
+      for (const doc of querySnapshot.docs) {
+        let chat = { id: doc.id, ...doc.data() };
+
+        const otherUID = chat.users.participants.find((uid) => uid !== userUID);
+
+        const userQuery = query(usersRef, where("uid", "==", otherUID));
+        const userQuerySnapshot = await getDocs(userQuery);
+        let otherDisplayName = "Unknown";
+        userQuerySnapshot.forEach((userDoc) => {
+          const fullName = userDoc.data().displayName || "Unknown";
+          const firstName = fullName.split(" ")[0];
+          otherDisplayName = firstName;
+        });
+
+        chat.otherDisplayName = otherDisplayName;
+        chatsData.push(chat);
+      }
+
+      setChats(chatsData);
     };
+
     fetchChats();
-  }, [auth.currentUser.uid]); // Dependency on user UID to refetch if it changes
+  }, [auth.currentUser.uid]);
 
   const handleScreenPress = () => {
     Keyboard.dismiss();
@@ -79,7 +96,7 @@ const HomeScreen = ({ navigation, route }) => {
       }).start();
     }
   }, [isSearchActive]);
-  console.log("CHATS", chats);
+  // console.log("CHATS", chats);
   return (
     <TouchableWithoutFeedback onPress={handleScreenPress}>
       <SafeAreaView
@@ -112,19 +129,25 @@ const HomeScreen = ({ navigation, route }) => {
           <Animated.View style={{ opacity: fadeAnim }}>
             {!isSearchActive && (
               <>
-                {chats.map((chat) => (
-                  <TouchableOpacity
-                    key={chat.id}
-                    style={styles.chatBox}
-                    onPress={() =>
-                      navigation.navigate("Chat", { chatId: chat.id })
-                    }
-                  >
-                    <Text style={styles.messageText}>
-                      {chat.users.lastMessage || "No messages"}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
+                {chats.map((chat) => {
+                  const displayText = `${chat.otherDisplayName}: ${
+                    chat.users.lastMessage || "No messages"
+                  }`;
+
+                  return (
+                    <TouchableOpacity
+                      key={chat.id}
+                      style={styles.chatBox}
+                      onPress={() =>
+                        navigation.navigate("Chat", {
+                          chatId: chat.id,
+                        })
+                      }
+                    >
+                      <Text style={styles.messageText}>{displayText}</Text>
+                    </TouchableOpacity>
+                  );
+                })}
               </>
             )}
           </Animated.View>
