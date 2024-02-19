@@ -14,6 +14,11 @@ import {
   LayoutAnimation,
   UIManager,
 } from "react-native";
+import {
+  differenceInMinutes,
+  differenceInHours,
+  differenceInDays,
+} from "date-fns";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import MenuModal from "./MenuModal";
 // import ChatSearch from "./chatSearch_pleaseModify";
@@ -34,11 +39,32 @@ const HomeScreen = ({ navigation, route }) => {
   const auth = FIREBASE_AUTH;
   const db = getFirestore();
   const [chats, setChats] = useState([]);
+
   useEffect(() => {
     const fetchChats = async () => {
       const userUID = auth.currentUser.uid;
       const chatsRef = collection(db, "chats");
       const usersRef = collection(db, "users");
+      function formatTimeAgo(date) {
+        const now = new Date();
+        const diffMinutes = differenceInMinutes(now, date);
+        const diffHours = differenceInHours(now, date);
+        const diffDays = differenceInDays(now, date);
+
+        if (diffDays >= 1) {
+          if (diffDays === 1) {
+            return "Yesterday";
+          } else {
+            return `${diffDays} d`;
+          }
+        } else if (diffHours >= 1) {
+          return `${diffHours}h`;
+        } else if (diffMinutes >= 1) {
+          return `${diffMinutes}m`;
+        } else {
+          return "Just now";
+        }
+      }
 
       const q = query(
         chatsRef,
@@ -51,10 +77,10 @@ const HomeScreen = ({ navigation, route }) => {
         let chat = { id: doc.id, ...doc.data() };
 
         const otherUID = chat.users.participants.find((uid) => uid !== userUID);
-
+        const timeAgo = formatTimeAgo(chat.users.lastMessageTimestamp.toDate());
         const userQuery = query(usersRef, where("uid", "==", otherUID));
         const userQuerySnapshot = await getDocs(userQuery);
-        let otherDisplayName = "Unknown";
+        let otherDisplayName = "Unknown User";
         userQuerySnapshot.forEach((userDoc) => {
           const fullName = userDoc.data().displayName || "Unknown";
           const firstName = fullName.split(" ")[0];
@@ -62,6 +88,8 @@ const HomeScreen = ({ navigation, route }) => {
         });
 
         chat.otherDisplayName = otherDisplayName;
+        chat.otherUID = otherUID;
+        chat.timeAgo = timeAgo;
         chatsData.push(chat);
       }
 
@@ -130,9 +158,9 @@ const HomeScreen = ({ navigation, route }) => {
             {!isSearchActive && (
               <>
                 {chats.map((chat) => {
-                  const displayText = `${chat.otherDisplayName}: ${
-                    chat.users.lastMessage || "No messages"
-                  }`;
+                  // Separately handle the display of the other party's display name and the last message
+                  const displayName = chat.otherDisplayName;
+                  const lastMessage = chat.users.lastMessage || "No messages";
 
                   return (
                     <TouchableOpacity
@@ -140,11 +168,28 @@ const HomeScreen = ({ navigation, route }) => {
                       style={styles.chatBox}
                       onPress={() =>
                         navigation.navigate("Chat", {
-                          chatId: chat.id,
+                          uid: chat.otherUID,
+                          displayName: chat.otherDisplayName,
                         })
                       }
                     >
-                      <Text style={styles.messageText}>{displayText}</Text>
+                      <Text style={[styles.messageText]}>
+                        {displayName}
+                        {"  "}
+                        <Text
+                          style={{
+                            color: "gray",
+                            fontSize: 12,
+                            marginLeft: 10,
+                          }}
+                        >
+                          {chat.timeAgo}
+                        </Text>
+                      </Text>
+
+                      <Text style={{ color: "white", marginBottom: 10 }}>
+                        {lastMessage}
+                      </Text>
                     </TouchableOpacity>
                   );
                 })}
@@ -203,16 +248,20 @@ const styles = StyleSheet.create({
   },
   chatBox: {
     // flex: 1,
-    backgroundColor: "#545151",
+    // backgroundColor: "#545151",
     borderRadius: 10,
-    padding: 10,
-    paddingVertical: 16,
+    padding: 8,
+    // paddingVertical: 16,
     marginHorizontal: 10,
     marginBottom: 5,
+    borderBottomWidth: 1, // This sets the thickness of the bottom border
+    borderBottomColor: "gray",
   },
   messageText: {
     fontWeight: "bold",
-    color: "#E9E9E9",
+    color: "white",
+    marginBottom: 4,
+    fontSize: 18,
   },
   messagesHeading: {
     fontSize: 32, // Larger font size
@@ -235,6 +284,10 @@ const styles = StyleSheet.create({
     // Style for the touchable opacity around the icon
     marginTop: 10, // Space from the heading
     padding: 10, // Adjust padding for touch area
+  },
+  boldText: {
+    fontWeight: "bold",
+    // Any additional styles for the display name
   },
 });
 

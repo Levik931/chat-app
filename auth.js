@@ -27,6 +27,7 @@ import {
   signInWithCredential,
   signOut,
 } from "firebase/auth";
+
 import * as Google from "expo-auth-session/providers/google";
 const LoginPage = ({ navigation }) => {
   const [email, setEmail] = useState("");
@@ -57,7 +58,6 @@ const LoginPage = ({ navigation }) => {
           const userCredential = await signInWithCredential(auth, credential);
           const user = userCredential.user;
           console.log("Login successful");
-          console.log("USER,", user.uid);
           // navigation.navigate("Home");
           const userData = {
             uid: user.uid,
@@ -105,7 +105,7 @@ const LoginPage = ({ navigation }) => {
         password
       );
       console.log(response);
-      alert("Check you Email");
+      alert("User Createrd Successfully");
     } catch (error) {
       console.log(error);
       alert("Sign In Failed " + error.message);
@@ -126,75 +126,69 @@ const LoginPage = ({ navigation }) => {
   console.log("logout function in LoginPage:", logout);
 
   return (
-    <ImageBackground
-      source={require("./loginPage.jpg")}
-      style={styles.container}
-    >
-      <View style={styles.overlay}>
-        <View style={styles.title}>
-          <Text style={styles.headerText}> Please Sign up or Login! </Text>
-          <Image source={require("./chat.png")} style={styles.chatIcon} />
-        </View>
-        <TextInput
-          placeholder="Email..."
-          placeholderTextColor="gray"
-          value={email}
-          onChangeText={(text) => setEmail(text)}
-          style={styles.signInButton}
-        />
-        <TextInput
-          placeholder="Password..."
-          placeholderTextColor="gray"
-          value={password}
-          onChangeText={(text) => setPassword(text)}
-          style={styles.signInButton}
-          secureTextEntry
-        />
-        {/* Sign In with Google Button */}
-        <TouchableOpacity
-          style={[
-            styles.signInButton,
-            { backgroundColor: "lightgray", marginBottom: 40 },
-          ]}
-          onPress={() => console.log("Sign In with Google Pressed")}
-        >
-          <Text style={styles.loginText}>Login</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[
-            styles.signInButton,
-            { backgroundColor: "lightgray", marginBottom: 40 },
-          ]}
-          onPress={signUp}
-        >
-          <Text style={styles.loginText}>SignUp</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
+    <View style={styles.overlay}>
+      <View style={styles.title}>
+        <Text style={{ color: "white" }}>Chatly</Text>
+      </View>
+      <TextInput
+        placeholder="Email..."
+        placeholderTextColor="gray"
+        value={email}
+        onChangeText={(text) => setEmail(text)}
+        style={styles.signInButton}
+      />
+      <TextInput
+        placeholder="Password..."
+        placeholderTextColor="gray"
+        value={password}
+        onChangeText={(text) => setPassword(text)}
+        style={styles.signInButton}
+        secureTextEntry
+      />
+      {/* Sign In with Google Button */}
+      <TouchableOpacity
+        style={[
+          styles.signInButton,
+          { backgroundColor: "lightgray", marginBottom: 40 },
+        ]}
+        onPress={() => console.log("Sign In with Google Pressed")}
+      >
+        <Text style={styles.loginText}>Login</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={[
+          styles.signInButton,
+          { backgroundColor: "lightgray", marginBottom: 40 },
+        ]}
+        onPress={signUp}
+      >
+        <Text style={styles.loginText}>SignUp</Text>
+      </TouchableOpacity>
+      {/* <TouchableOpacity
           style={[styles.signInButton, { backgroundColor: "gray" }]}
           onPress={() => console.log("Sign In with Google Pressed")}
         >
           <Image source={require("./github.png")} style={styles.PNG} />
           <Text style={styles.buttonText}>Continue with GitHub</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.signInButton, { backgroundColor: "blue" }]}
-          onPress={() => {
-            promptAsync();
-          }}
-        >
-          <Image source={require("./google.png")} style={styles.PNG} />
-          <Text style={styles.buttonText}>Continue with Google</Text>
-        </TouchableOpacity>
-        {/* Sign In with Apple Button */}
-        <TouchableOpacity
-          style={styles.signInButton}
-          onPress={() => console.log("Sign In with Apple Pressed")}
-        >
-          <Image source={require("./apple.png")} style={styles.PNG} />
-          <Text style={styles.buttonText}>Continue with Apple</Text>
-        </TouchableOpacity>
-      </View>
-    </ImageBackground>
+        </TouchableOpacity> */}
+      <TouchableOpacity
+        style={[styles.signInButton, { backgroundColor: "blue" }]}
+        onPress={() => {
+          promptAsync();
+        }}
+      >
+        <Image source={require("./google.png")} style={styles.PNG} />
+        <Text style={styles.buttonText}>Continue with Google</Text>
+      </TouchableOpacity>
+      {/* Sign In with Apple Button */}
+      <TouchableOpacity
+        style={styles.signInButton}
+        onPress={() => console.log("Sign In with Apple Pressed")}
+      >
+        <Image source={require("./apple.png")} style={styles.PNG} />
+        <Text style={styles.buttonText}>Continue with Apple</Text>
+      </TouchableOpacity>
+    </View>
   );
 };
 
@@ -205,7 +199,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   overlay: {
-    backgroundColor: "rgba(0, 0, 0, 0.4)", // Dark overlay to improve text visibility
+    backgroundColor: "black", // Dark overlay to improve text visibility
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
@@ -241,15 +235,17 @@ const styles = StyleSheet.create({
 
   signInButton: {
     flexDirection: "row",
-    backgroundColor: "black",
+    // backgroundColor: "black",
     justifyContent: "space-between",
     padding: 10,
-    borderRadius: 20,
+    borderRadius: 12,
     marginBottom: 10,
     width: 250,
     alignItems: "center",
     paddingHorizontal: 20,
-    color: "white",
+    // color: "white",
+    borderColor: "gray",
+    borderWidth: 0.5,
   },
   buttonText: {
     color: "white",

@@ -107,7 +107,7 @@ const UserSearch = ({
                       uid: user.uid,
                       displayName: user.displayName,
                     }),
-                  2
+                  1
                 );
                 setIsFocused(false);
               }}
