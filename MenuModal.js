@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -8,20 +8,37 @@ import {
 } from "react-native";
 import { signOut } from "firebase/auth";
 import { FIREBASE_AUTH } from "./firebaseConfig";
+import LottieView from "lottie-react-native";
 
 const auth = FIREBASE_AUTH;
 
-const MenuModal = ({ isVisible, onOpen, onClose, navigation }) => {
-  const logoutGoogle = async () => {
+const MenuModal = ({ navigation }) => {
+  const [loading, setLoading] = useState(false);
+  const signUserOut = async () => {
+    setLoading(true);
+    const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
     try {
+      await delay(1500);
       await signOut(auth);
-      onClose();
-      navigation.navigate("Login");
-      console.log("User signed out!");
     } catch (error) {
-      console.error("Logout failed:", error);
+      console.log(error);
+      alert("An error occurred. Please try again");
+    } finally {
+      setLoading(false);
     }
   };
+  if (loading) {
+    return (
+      <View style={styles.centered}>
+        <LottieView
+          autoPlay
+          style={{ width: "100%", height: "100%", backgroundColor: "black" }}
+          source={require("./loading.json")}
+        />
+      </View>
+    );
+  }
 
   return (
     <View style={styles.fullScreenBlackBackground}>
@@ -30,7 +47,7 @@ const MenuModal = ({ isVisible, onOpen, onClose, navigation }) => {
           <TouchableOpacity onPress={null} style={styles.menuItem}>
             <Text style={styles.menuItemText}>Edit</Text>
           </TouchableOpacity>
-          <TouchableOpacity onPress={logoutGoogle} style={styles.menuItem}>
+          <TouchableOpacity onPress={signUserOut} style={styles.menuItem}>
             <Text style={styles.menuItemText}>Log Out</Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={null} style={styles.menuItemNoBorder}>
@@ -87,6 +104,11 @@ const styles = StyleSheet.create({
   safeAreaContainer: {
     flex: 1,
     backgroundColor: "black",
+  },
+  centered: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
 

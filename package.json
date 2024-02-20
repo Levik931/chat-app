@@ -25,6 +25,7 @@
     "expo": "~50.0.2",
     "expo-auth-session": "^5.4.0",
     "expo-dev-client": "^3.3.7",
+    "expo-font": "~11.10.3",
     "expo-secure-store": "~12.8.1",
     "expo-status-bar": "~1.11.1",
     "expo-updates": "~0.24.9",

@@ -8,6 +8,7 @@ import {
   ImageBackground,
 } from "react-native";
 import { TextInput } from "react-native";
+import LottieView from "lottie-react-native";
 import { FIREBASE_AUTH } from "./firebaseConfig";
 import {
   getFirestore,
@@ -88,10 +89,12 @@ const LoginPage = ({ navigation }) => {
     try {
       const response = await signInWithEmailAndPassword(auth, email, password);
       console.log(response);
-      alert("Check you Email");
+      setTimeout(() => {
+        setLoading(false);
+      }, 3000);
     } catch (error) {
       console.log(error);
-      alert("Sign In Failed " + error.message);
+      alert("Either username or password is incorrect, Please try again");
     } finally {
       setLoading(false);
     }
@@ -113,22 +116,32 @@ const LoginPage = ({ navigation }) => {
       setLoading(false);
     }
   };
-  const logout = async () => {
-    try {
-      await signOut(auth);
-      navigation.navigate("Login");
-      console.log("User signed out!");
-      // Navigate to login screen or do other actions after logout
-    } catch (error) {
-      console.error("Logout failed:", error);
-    }
-  };
-  console.log("logout function in LoginPage:", logout);
+
+  if (loading) {
+    return (
+      <View style={styles.centered}>
+        <LottieView
+          autoPlay
+          style={{ width: "100%", height: "100%", backgroundColor: "black" }}
+          source={require("./loading.json")}
+        />
+      </View>
+    );
+  }
 
   return (
     <View style={styles.overlay}>
       <View style={styles.title}>
-        <Text style={{ color: "white" }}>Chatly</Text>
+        <Image
+          style={{
+            width: 140,
+            height: 140,
+            marginTop: 100,
+            marginRight: 30,
+            marginBottom: -110,
+          }}
+          source={require("./chatly.png")}
+        />
       </View>
       <TextInput
         placeholder="Email..."
@@ -151,19 +164,11 @@ const LoginPage = ({ navigation }) => {
           styles.signInButton,
           { backgroundColor: "lightgray", marginBottom: 40 },
         ]}
-        onPress={() => console.log("Sign In with Google Pressed")}
+        onPress={signIn}
       >
         <Text style={styles.loginText}>Login</Text>
       </TouchableOpacity>
-      <TouchableOpacity
-        style={[
-          styles.signInButton,
-          { backgroundColor: "lightgray", marginBottom: 40 },
-        ]}
-        onPress={signUp}
-      >
-        <Text style={styles.loginText}>SignUp</Text>
-      </TouchableOpacity>
+
       {/* <TouchableOpacity
           style={[styles.signInButton, { backgroundColor: "gray" }]}
           onPress={() => console.log("Sign In with Google Pressed")}
@@ -171,6 +176,15 @@ const LoginPage = ({ navigation }) => {
           <Image source={require("./github.png")} style={styles.PNG} />
           <Text style={styles.buttonText}>Continue with GitHub</Text>
         </TouchableOpacity> */}
+      <TouchableOpacity
+        style={[
+          styles.signInButton,
+          { backgroundColor: "lightgray", marginBottom: 10, marginTop: 10 },
+        ]}
+        onPress={signUp}
+      >
+        <Text style={styles.loginText}>SignUp</Text>
+      </TouchableOpacity>
       <TouchableOpacity
         style={[styles.signInButton, { backgroundColor: "blue" }]}
         onPress={() => {
@@ -243,7 +257,7 @@ const styles = StyleSheet.create({
     width: 250,
     alignItems: "center",
     paddingHorizontal: 20,
-    // color: "white",
+    color: "white",
     borderColor: "gray",
     borderWidth: 0.5,
   },
@@ -258,6 +272,11 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderRadius: 10,
     marginTop: 5,
+  },
+  centered: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
 

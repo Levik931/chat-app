@@ -20,6 +20,7 @@ const TabNavigator = () => (
   <Tab.Navigator
     screenOptions={({ route }) => ({
       headerShown: false,
+      animationEnabled: false,
       tabBarIcon: ({ focused, color, size }) => {
         let iconName;
 
@@ -36,11 +37,11 @@ const TabNavigator = () => (
       },
       tabBarActiveTintColor: "tomato",
       tabBarInactiveTintColor: "gray",
-      tabBarStyle: { backgroundColor: "black" }, // Set background color
+      tabBarStyle: { backgroundColor: "black" },
     })}
   >
     <Tab.Screen name="Home" component={HomeScreen} />
-    <Tab.Screen name="Login" component={LoginPage} />
+    {/* <Tab.Screen name="Login" component={LoginPage} /> */}
     <Tab.Screen name="Menu" component={MenuModal} />
   </Tab.Navigator>
 );
@@ -56,7 +57,9 @@ const App = () => {
       } else {
         setIsAuthenticated(false);
       }
-      setLoading(false);
+      setTimeout(() => {
+        setLoading(false);
+      }, 1500);
     });
 
     return () => unsubscribe();
@@ -104,6 +107,7 @@ const App = () => {
             name="Login"
             component={LoginPage}
             options={{ headerShown: false }}
+            screenOptions={{ animation: "none" }}
           />
         )}
       </Stack.Navigator>
