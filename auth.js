@@ -19,6 +19,7 @@ import {
   addDoc,
   setDoc,
 } from "firebase/firestore";
+import * as Font from "expo-font";
 
 import {
   createUserWithEmailAndPassword,
@@ -30,10 +31,15 @@ import {
 } from "firebase/auth";
 
 import * as Google from "expo-auth-session/providers/google";
+const customFonts = {
+  Crimson: require("./CrimsonText-Bold.ttf"),
+};
+
 const LoginPage = ({ navigation }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [fontsLoaded, setFontsLoaded] = useState(false);
   const [request, response, promptAsync] = Google.useAuthRequest({
     iosClientId:
       "629450976243-c6edbh4am9mkmvuk04vn8b7v9l6irp2q.apps.googleusercontent.com",
@@ -43,6 +49,14 @@ const LoginPage = ({ navigation }) => {
     //   "183951813596-vsq1qfptv93rfc8sbkcprqf1g04ltj1g.apps.googleusercontent.com",
     // scopes: ["profile", "email"],
   });
+  async function loadFonts() {
+    await Font.loadAsync(customFonts);
+    setFontsLoaded(true);
+  }
+
+  useEffect(() => {
+    loadFonts();
+  }, []);
 
   const auth = FIREBASE_AUTH;
 
@@ -99,23 +113,6 @@ const LoginPage = ({ navigation }) => {
       setLoading(false);
     }
   };
-  const signUp = async () => {
-    setLoading(true);
-    try {
-      const response = await createUserWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
-      console.log(response);
-      alert("User Createrd Successfully");
-    } catch (error) {
-      console.log(error);
-      alert("Sign In Failed " + error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   if (loading) {
     return (
@@ -143,22 +140,47 @@ const LoginPage = ({ navigation }) => {
           source={require("./chatly.png")}
         />
       </View>
+      {fontsLoaded && (
+        <Text
+          style={{
+            fontFamily: "Crimson", // Ensure this font is correctly loaded with expo-font
+            color: "white",
+            fontSize: 30,
+            marginRight: 120,
+            marginBottom: 10,
+          }}
+        >
+          Welcome!
+        </Text>
+      )}
       <TextInput
-        placeholder="Email..."
+        placeholder="Email"
         placeholderTextColor="gray"
         value={email}
         onChangeText={(text) => setEmail(text)}
         style={styles.signInButton}
       />
       <TextInput
-        placeholder="Password..."
+        placeholder="Password"
         placeholderTextColor="gray"
         value={password}
         onChangeText={(text) => setPassword(text)}
         style={styles.signInButton}
         secureTextEntry
       />
-      {/* Sign In with Google Button */}
+      <TouchableOpacity>
+        <Text
+          style={{
+            color: "gray",
+            marginBottom: 20,
+            marginLeft: 130,
+            marginTop: -2,
+          }}
+        >
+          Forgot Password?
+        </Text>
+      </TouchableOpacity>
+
       <TouchableOpacity
         style={[
           styles.signInButton,
@@ -176,7 +198,7 @@ const LoginPage = ({ navigation }) => {
           <Image source={require("./github.png")} style={styles.PNG} />
           <Text style={styles.buttonText}>Continue with GitHub</Text>
         </TouchableOpacity> */}
-      <TouchableOpacity
+      {/* <TouchableOpacity
         style={[
           styles.signInButton,
           { backgroundColor: "lightgray", marginBottom: 10, marginTop: 10 },
@@ -184,7 +206,7 @@ const LoginPage = ({ navigation }) => {
         onPress={signUp}
       >
         <Text style={styles.loginText}>SignUp</Text>
-      </TouchableOpacity>
+      </TouchableOpacity> */}
       <TouchableOpacity
         style={[styles.signInButton, { backgroundColor: "blue" }]}
         onPress={() => {
@@ -202,6 +224,12 @@ const LoginPage = ({ navigation }) => {
         <Image source={require("./apple.png")} style={styles.PNG} />
         <Text style={styles.buttonText}>Continue with Apple</Text>
       </TouchableOpacity>
+      <Text style={{ color: "gray", lineHeight: 22 }}>
+        Dont have an account?{"  "}
+        <TouchableOpacity onPress={() => navigation.navigate("SignUp")}>
+          <Text style={{ color: "green", fontWeight: "bold" }}>Sign Up!</Text>
+        </TouchableOpacity>
+      </Text>
     </View>
   );
 };

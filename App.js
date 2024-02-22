@@ -12,6 +12,7 @@ import MenuModal from "./MenuModal";
 import LottieView from "lottie-react-native";
 import Icon from "react-native-vector-icons/Ionicons";
 import UserSearch from "./userSearch";
+import SignUpScreen from "./SignUpPage";
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -103,12 +104,20 @@ const App = () => {
             />
           </>
         ) : (
-          <Stack.Screen
-            name="Login"
-            component={LoginPage}
-            options={{ headerShown: false }}
-            screenOptions={{ animation: "none" }}
-          />
+          <>
+            <Stack.Screen
+              name="Login"
+              component={LoginPage}
+              options={{ headerShown: false }}
+              screenOptions={{ animation: "none" }}
+            />
+            <Stack.Screen
+              name="SignUp"
+              component={SignUpScreen}
+              options={{ headerShown: false }}
+              screenOptions={{ animation: "none" }}
+            />
+          </>
         )}
       </Stack.Navigator>
     </NavigationContainer>
