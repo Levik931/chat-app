@@ -17,7 +17,8 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.levik.chatapp1"
+      "bundleIdentifier": "com.levik.chatapp1",
+
     },
     "android": {
       "adaptiveIcon": {

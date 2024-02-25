@@ -6,6 +6,9 @@ import {
   TouchableOpacity,
   StyleSheet,
   ImageBackground,
+  KeyboardAvoidingView,
+  SafeAreaView,
+  Platform,
 } from "react-native";
 import { TextInput } from "react-native";
 import LottieView from "lottie-react-native";
@@ -127,78 +130,83 @@ const LoginPage = ({ navigation }) => {
   }
 
   return (
-    <View style={styles.overlay}>
-      <View style={styles.title}>
-        <Image
-          style={{
-            width: 140,
-            height: 140,
-            marginTop: 100,
-            marginRight: 30,
-            marginBottom: -110,
-          }}
-          source={require("./chatly.png")}
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      style={styles.container}
+    >
+      <View style={styles.overlay}>
+        <SafeAreaView />
+        <View style={styles.title}>
+          <Image
+            style={{
+              width: 140,
+              height: 140,
+              marginTop: 100,
+              marginRight: 30,
+              marginBottom: -110,
+            }}
+            source={require("./chatly.png")}
+          />
+        </View>
+        {/* {fontsLoaded && (
+          <Text
+            style={{
+              fontFamily: "Crimson",
+              color: "white",
+              fontSize: 30,
+              marginRight: 120,
+              marginBottom: 10,
+            }}
+          >
+            Welcome!
+          </Text>
+        )} */}
+        <TextInput
+          placeholder="Email"
+          placeholderTextColor="gray"
+          value={email}
+          onChangeText={(text) => setEmail(text)}
+          style={styles.signInButton}
         />
-      </View>
-      {fontsLoaded && (
-        <Text
-          style={{
-            fontFamily: "Crimson", // Ensure this font is correctly loaded with expo-font
-            color: "white",
-            fontSize: 30,
-            marginRight: 120,
-            marginBottom: 10,
-          }}
-        >
-          Welcome!
-        </Text>
-      )}
-      <TextInput
-        placeholder="Email"
-        placeholderTextColor="gray"
-        value={email}
-        onChangeText={(text) => setEmail(text)}
-        style={styles.signInButton}
-      />
-      <TextInput
-        placeholder="Password"
-        placeholderTextColor="gray"
-        value={password}
-        onChangeText={(text) => setPassword(text)}
-        style={styles.signInButton}
-        secureTextEntry
-      />
-      <TouchableOpacity>
-        <Text
-          style={{
-            color: "gray",
-            marginBottom: 20,
-            marginLeft: 130,
-            marginTop: -2,
-          }}
-        >
-          Forgot Password?
-        </Text>
-      </TouchableOpacity>
+        <TextInput
+          placeholder="Password"
+          placeholderTextColor="gray"
+          value={password}
+          onChangeText={(text) => setPassword(text)}
+          style={styles.signInButton}
+          secureTextEntry
+        />
+        <TouchableOpacity>
+          <Text
+            style={{
+              color: "gray",
+              marginBottom: 20,
+              marginLeft: 130,
+              marginTop: -2,
+            }}
+          >
+            Forgot Password?
+          </Text>
+        </TouchableOpacity>
 
-      <TouchableOpacity
-        style={[
-          styles.signInButton,
-          { backgroundColor: "lightgray", marginBottom: 40 },
-        ]}
-        onPress={signIn}
-      >
-        <Text style={styles.loginText}>Login</Text>
-      </TouchableOpacity>
+        <TouchableOpacity
+          style={[
+            styles.signInButton,
+            { backgroundColor: "lightgray", marginBottom: 40 },
+          ]}
+          onPress={signIn}
+        >
+          <Text style={styles.loginText}>Login</Text>
+        </TouchableOpacity>
 
-      {/* <TouchableOpacity
+        {/* <TouchableOpacity
           style={[styles.signInButton, { backgroundColor: "gray" }]}
           onPress={() => console.log("Sign In with Google Pressed")}
         >
           <Image source={require("./github.png")} style={styles.PNG} />
           <Text style={styles.buttonText}>Continue with GitHub</Text>
         </TouchableOpacity> */}
-      {/* <TouchableOpacity
+        {/* <TouchableOpacity
         style={[
           styles.signInButton,
           { backgroundColor: "lightgray", marginBottom: 10, marginTop: 10 },
@@ -207,30 +215,32 @@ const LoginPage = ({ navigation }) => {
       >
         <Text style={styles.loginText}>SignUp</Text>
       </TouchableOpacity> */}
-      <TouchableOpacity
-        style={[styles.signInButton, { backgroundColor: "blue" }]}
-        onPress={() => {
-          promptAsync();
-        }}
-      >
-        <Image source={require("./google.png")} style={styles.PNG} />
-        <Text style={styles.buttonText}>Continue with Google</Text>
-      </TouchableOpacity>
-      {/* Sign In with Apple Button */}
-      <TouchableOpacity
-        style={styles.signInButton}
-        onPress={() => console.log("Sign In with Apple Pressed")}
-      >
-        <Image source={require("./apple.png")} style={styles.PNG} />
-        <Text style={styles.buttonText}>Continue with Apple</Text>
-      </TouchableOpacity>
-      <Text style={{ color: "gray", lineHeight: 22 }}>
-        Dont have an account?{"  "}
-        <TouchableOpacity onPress={() => navigation.navigate("SignUp")}>
-          <Text style={{ color: "green", fontWeight: "bold" }}>Sign Up!</Text>
+        <TouchableOpacity
+          style={[styles.signInButton, { backgroundColor: "blue" }]}
+          onPress={() => {
+            promptAsync();
+          }}
+        >
+          <Image source={require("./google.png")} style={styles.PNG} />
+          <Text style={styles.buttonText}>Continue with Google</Text>
         </TouchableOpacity>
-      </Text>
-    </View>
+        {/* Sign In with Apple Button */}
+        <TouchableOpacity
+          style={styles.signInButton}
+          onPress={() => console.log("Sign In with Apple Pressed")}
+        >
+          <Image source={require("./apple.png")} style={styles.PNG} />
+          <Text style={styles.buttonText}>Continue with Apple</Text>
+        </TouchableOpacity>
+        <Text style={{ color: "gray", lineHeight: 22 }}>
+          Dont have an account?{"  "}
+          <TouchableOpacity onPress={() => navigation.navigate("SignUp")}>
+            <Text style={{ color: "green", fontWeight: "bold" }}>Sign Up!</Text>
+          </TouchableOpacity>
+        </Text>
+        <SafeAreaView />
+      </View>
+    </KeyboardAvoidingView>
   );
 };
 

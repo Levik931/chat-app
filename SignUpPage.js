@@ -9,6 +9,16 @@ import {
   Platform,
   ScrollView,
 } from "react-native";
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  GoogleAuthProvider,
+  onAuthStateChanged,
+  signInWithCredential,
+  signOut,
+} from "firebase/auth";
+import { FIREBASE_AUTH } from "./firebaseConfig";
+
 import * as Font from "expo-font";
 const customFonts = {
   Helvetica: require("./HelveticaNeueCondensedBlack.ttf"),
@@ -20,7 +30,7 @@ const SignUpScreen = ({ navigation }) => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [fontsLoaded, setFontsLoaded] = useState(false);
-
+  const auth = FIREBASE_AUTH;
   async function loadFonts() {
     await Font.loadAsync(customFonts);
     setFontsLoaded(true);
