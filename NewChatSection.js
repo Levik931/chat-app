@@ -97,7 +97,7 @@ const NewChatSection = ({ navigation, route }) => {
           senderName: auth.currentUser.displayName,
           receiverName: displayName,
           lastMessage: lastMessage.text,
-          lastMessageTimestamp: serverTimestamp(),
+          lastMessageTimestamp: lastMessage.timestamp,
         };
         setDoc(chatRef, { users }, { merge: true });
       }

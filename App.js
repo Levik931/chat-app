@@ -13,6 +13,8 @@ import LottieView from "lottie-react-native";
 import Icon from "react-native-vector-icons/Ionicons";
 import UserSearch from "./userSearch";
 import SignUpScreen from "./SignUpPage";
+import Swipeable from "react-native-gesture-handler/Swipeable";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -79,48 +81,50 @@ const App = () => {
   }
 
   return (
-    <NavigationContainer>
-      <Stack.Navigator>
-        {isAuthenticated ? (
-          <>
-            <Stack.Screen
-              name="Tabs"
-              component={TabNavigator}
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name="Chat"
-              component={NewChatSection}
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name="UserSearch"
-              component={UserSearch}
-              options={{
-                headerShown: false,
-                presentation: "modal",
-                animation: "slide_from_bottom",
-              }}
-            />
-          </>
-        ) : (
-          <>
-            <Stack.Screen
-              name="Login"
-              component={LoginPage}
-              options={{ headerShown: false }}
-              screenOptions={{ animation: "none" }}
-            />
-            <Stack.Screen
-              name="SignUp"
-              component={SignUpScreen}
-              options={{ headerShown: false }}
-              screenOptions={{ animation: "none" }}
-            />
-          </>
-        )}
-      </Stack.Navigator>
-    </NavigationContainer>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <NavigationContainer>
+        <Stack.Navigator>
+          {isAuthenticated ? (
+            <>
+              <Stack.Screen
+                name="Tabs"
+                component={TabNavigator}
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen
+                name="Chat"
+                component={NewChatSection}
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen
+                name="UserSearch"
+                component={UserSearch}
+                options={{
+                  headerShown: false,
+                  presentation: "modal",
+                  animation: "slide_from_bottom",
+                }}
+              />
+            </>
+          ) : (
+            <>
+              <Stack.Screen
+                name="Login"
+                component={LoginPage}
+                options={{ headerShown: false }}
+                screenOptions={{ animation: "none" }}
+              />
+              <Stack.Screen
+                name="SignUp"
+                component={SignUpScreen}
+                options={{ headerShown: false }}
+                screenOptions={{ animation: "none" }}
+              />
+            </>
+          )}
+        </Stack.Navigator>
+      </NavigationContainer>
+    </GestureHandlerRootView>
   );
 };
 

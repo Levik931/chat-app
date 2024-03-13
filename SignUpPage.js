@@ -17,7 +17,17 @@ import {
   signInWithCredential,
   signOut,
 } from "firebase/auth";
+import {
+  getFirestore,
+  collection,
+  query,
+  getDocs,
+  doc,
+  addDoc,
+  setDoc,
+} from "firebase/firestore";
 import { FIREBASE_AUTH } from "./firebaseConfig";
+import Ionicons from "react-native-vector-icons/Ionicons";
 
 import * as Font from "expo-font";
 const customFonts = {
@@ -31,11 +41,15 @@ const SignUpScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(false);
   const [fontsLoaded, setFontsLoaded] = useState(false);
   const auth = FIREBASE_AUTH;
+  const db = getFirestore();
   async function loadFonts() {
     await Font.loadAsync(customFonts);
     setFontsLoaded(true);
   }
-
+  const isValidEmail = (email) => {
+    const re = /^[^\s@]+@[^\s@]+\.(com|edu|net|org|gov|mil|biz|info|app|io)$/i;
+    return re.test(email);
+  };
   useEffect(() => {
     loadFonts();
   }, []);
@@ -52,11 +66,18 @@ const SignUpScreen = ({ navigation }) => {
         password,
         userName
       );
-      console.log(response);
+      const userInfo = {
+        uid: response.user.uid,
+        email: response.user.email,
+        displayName: userName,
+        emailVerified: response.user.emailVerified,
+      };
+      console.log("this is response", response.user.uid);
+      await setDoc(doc(db, "users", response.user.uid), userInfo);
       alert("User Createrd Successfully");
     } catch (error) {
       console.log(error);
-      alert("Sign In Failed " + error.message);
+      alert("Sign Up Failed " + error.message);
     } finally {
       setLoading(false);
     }
@@ -70,25 +91,44 @@ const SignUpScreen = ({ navigation }) => {
     >
       <View style={styles.formContainer}>
         {fontsLoaded && <Text style={styles.title}>Sign Up!</Text>}
-
-        <TextInput
-          style={styles.input}
-          placeholder="User name"
-          placeholderTextColor="#999"
-          value={userName}
-          onChangeText={setUserName}
-          keyboardType="email-address"
-          autoCapitalize="sentences"
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Email"
-          placeholderTextColor="#999"
-          value={email}
-          onChangeText={setEmail}
-          keyboardType="email-address"
-          autoCapitalize="sentences"
-        />
+        <View>
+          <TextInput
+            style={styles.input}
+            placeholder="Username"
+            placeholderTextColor="#999"
+            value={userName}
+            onChangeText={setUserName}
+            keyboardType="email-address"
+            autoCapitalize="sentences"
+          />
+          {userName.length >= 5 && (
+            <Ionicons
+              name="checkmark-circle-outline"
+              size={24}
+              color="green"
+              style={styles.icon}
+            />
+          )}
+        </View>
+        <View>
+          <TextInput
+            style={styles.input}
+            placeholder="Email"
+            placeholderTextColor="#999"
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="sentences"
+          />
+          {isValidEmail(email) && (
+            <Ionicons
+              name="checkmark-circle-outline"
+              size={24}
+              color="green"
+              style={styles.icon}
+            />
+          )}
+        </View>
 
         <TextInput
           style={styles.input}
@@ -98,7 +138,6 @@ const SignUpScreen = ({ navigation }) => {
           onChangeText={setPassword}
           secureTextEntry
         />
-
         <TextInput
           style={styles.input}
           placeholder="Confirm Password"
@@ -107,7 +146,6 @@ const SignUpScreen = ({ navigation }) => {
           onChangeText={setConfirmPassword}
           secureTextEntry
         />
-
         <TouchableOpacity style={styles.button} onPress={signUp}>
           <Text style={styles.buttonText}>Sign Up</Text>
         </TouchableOpacity>
@@ -145,6 +183,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontFamily: "Helvetica",
   },
+
   input: {
     height: 50,
     borderColor: "gray",
@@ -155,6 +194,22 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "white",
     fontFamily: "Helvetica",
+  },
+  inputContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    position: "relative",
+  },
+  icon: {
+    position: "absolute",
+    right: 5,
+    top: 13,
+    height: 50,
+    width: 30,
+  },
+  iconStyle: {
+    position: "absolute",
+    right: 10,
   },
   button: {
     backgroundColor: "#007BFF",

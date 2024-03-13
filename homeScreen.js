@@ -13,6 +13,7 @@ import {
   Animated,
   LayoutAnimation,
   UIManager,
+  Alert,
 } from "react-native";
 import {
   differenceInMinutes,
@@ -21,7 +22,8 @@ import {
 } from "date-fns";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import MenuModal from "./MenuModal";
-// import ChatSearch from "./chatSearch_pleaseModify";
+import Swipeable from "react-native-gesture-handler/Swipeable";
+import { SwipeListView } from "react-native-swipe-list-view";
 import { FIREBASE_AUTH } from "./firebaseConfig";
 import {
   Firestore,
@@ -31,6 +33,8 @@ import {
   where,
   getDocs,
   find,
+  deleteDoc,
+  doc,
 } from "@firebase/firestore";
 
 const HomeScreen = ({ navigation, route }) => {
@@ -76,7 +80,11 @@ const HomeScreen = ({ navigation, route }) => {
       for (const doc of querySnapshot.docs) {
         let chat = { id: doc.id, ...doc.data() };
 
-        const otherUID = chat.users.participants.find((uid) => uid !== userUID);
+        const otherUID =
+          chat.users.participants.length === 2 &&
+          chat.users.participants[0] === chat.users.participants[1]
+            ? userUID
+            : chat.users.participants.find((uid) => uid !== userUID);
         const timeAgo = formatTimeAgo(chat.users.lastMessageTimestamp.toDate());
         const userQuery = query(usersRef, where("uid", "==", otherUID));
         const userQuerySnapshot = await getDocs(userQuery);
@@ -97,7 +105,7 @@ const HomeScreen = ({ navigation, route }) => {
     };
 
     fetchChats();
-  }, [auth.currentUser.uid]);
+  }, [auth.currentUser.uid, chats]);
 
   const handleScreenPress = () => {
     Keyboard.dismiss();
@@ -124,16 +132,81 @@ const HomeScreen = ({ navigation, route }) => {
       }).start();
     }
   }, [isSearchActive]);
-  // console.log("CHATS", chats);
+
+  const renderRightActions = (progress, dragX, chatId) => {
+    const scaleEdit = dragX.interpolate({
+      inputRange: [-100, 0],
+      outputRange: [0, 200],
+      extrapolate: "clamp",
+    });
+    const scaleDelete = dragX.interpolate({
+      inputRange: [-100, 0],
+      outputRange: [0, 100],
+      extrapolate: "clamp",
+    });
+
+    return (
+      <View style={{ flexDirection: "row", width: 150 }}>
+        <Animated.View
+          style={{
+            flex: 1,
+            transform: [{ translateX: scaleEdit }],
+            backgroundColor: "#FFC300",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <TouchableOpacity onPress={() => console.log("Edit")}>
+            <Ionicons name="ellipsis-horizontal" size={25} color="white" />
+          </TouchableOpacity>
+        </Animated.View>
+        <Animated.View
+          style={{
+            flex: 1,
+            transform: [{ translateX: scaleDelete }],
+            backgroundColor: "#FF4433",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <TouchableOpacity onPress={() => handleDelete(chatId)}>
+            <Ionicons name="trash" size={25} color="white" />
+          </TouchableOpacity>
+        </Animated.View>
+      </View>
+    );
+  };
+
+  const handleDelete = (chatId) => {
+    Alert.alert(
+      "Delete Chat",
+      "Are you sure you want to delete this chat?",
+      [
+        {
+          text: "Cancel",
+          onPress: () => console.log("Cancel Pressed"),
+          style: "cancel",
+        },
+        {
+          text: "Yes",
+          onPress: () => {
+            deleteDoc(doc(db, "chats", chatId));
+          },
+        },
+      ],
+      { cancelable: false }
+    );
+  };
+
   return (
     <TouchableWithoutFeedback onPress={handleScreenPress}>
       <SafeAreaView
         style={[styles.safeAreaContainer, { backgroundColor: "black" }]}
       >
         <ScrollView
-          style={[styles.scrollViewStyle, { backgroundColor: "black" }]} // Added backgroundColor: 'black'
+          style={{ backgroundColor: "black" }} // Added backgroundColor: 'black'
           contentContainerStyle={styles.scrollViewContent}
-          scrollEnabled={!isSearchActive} // Disable scrolling when search is active
+          scrollEnabled={!isSearchActive}
         >
           <Animated.View style={{ opacity: fadeAnim }}>
             {!isSearchActive && (
@@ -148,49 +221,58 @@ const HomeScreen = ({ navigation, route }) => {
               </View>
             )}
           </Animated.View>
-
-          {/* <ChatSearch
-            onSearchFocus={() => setIsSearchActive(true)}
-            onSearchBlur={() => setIsSearchActive(false)}
-            onSelectUser={(uid) => navigation.navigate("Chat", { uid })}
-          /> */}
           <Animated.View style={{ opacity: fadeAnim }}>
             {!isSearchActive && (
               <>
-                {chats.map((chat) => {
-                  // Separately handle the display of the other party's display name and the last message
+                {chats.map((chat, index) => {
                   const displayName = chat.otherDisplayName;
                   const lastMessage = chat.users.lastMessage || "No messages";
+                  const renderRightActionsWithId = (progress, dragX) =>
+                    renderRightActions(progress, dragX, chat.id);
 
                   return (
-                    <TouchableOpacity
+                    <Swipeable
                       key={chat.id}
-                      style={styles.chatBox}
-                      onPress={() =>
-                        navigation.navigate("Chat", {
-                          uid: chat.otherUID,
-                          displayName: chat.otherDisplayName,
-                        })
-                      }
+                      renderRightActions={renderRightActionsWithId}
+                      overshootRight={false} // This prevents the button from overshooting
+                      friction={4} // Adjust friction for smoother animation
+                      leftThreshold={30} // The threshold for when the swipe left action is activated
+                      rightThreshold={40} // The threshold for when the swipe right action is activated
                     >
-                      <Text style={[styles.messageText]}>
-                        {displayName}
-                        {"  "}
-                        <Text
+                      <TouchableOpacity
+                        style={styles.chatBox}
+                        onPress={() =>
+                          navigation.navigate("Chat", {
+                            uid: chat.otherUID,
+                            displayName: chat.otherDisplayName,
+                          })
+                        }
+                      >
+                        <View
                           style={{
-                            color: "gray",
-                            fontSize: 12,
-                            marginLeft: 10,
+                            flexDirection: "row",
+                            justifyContent: "space-between",
+                            alignItems: "center",
                           }}
                         >
-                          {chat.timeAgo}
-                        </Text>
-                      </Text>
+                          <Text style={styles.messageText}>{displayName}</Text>
+                          <View style={{ marginRight: 30 }}>
+                            <Text
+                              style={{
+                                color: "gray",
+                                fontSize: 17,
+                              }}
+                            >
+                              {chat.timeAgo}
+                            </Text>
+                          </View>
+                        </View>
 
-                      <Text style={{ color: "white", marginBottom: 10 }}>
-                        {lastMessage}
-                      </Text>
-                    </TouchableOpacity>
+                        <Text style={{ color: "white", marginBottom: 10 }}>
+                          {lastMessage}
+                        </Text>
+                      </TouchableOpacity>
+                    </Swipeable>
                   );
                 })}
               </>
@@ -254,7 +336,7 @@ const styles = StyleSheet.create({
     // paddingVertical: 16,
     marginHorizontal: 10,
     marginBottom: 5,
-    borderBottomWidth: 1, // This sets the thickness of the bottom border
+    borderBottomWidth: 0.4, // This sets the thickness of the bottom border
     borderBottomColor: "gray",
   },
   messageText: {
@@ -289,6 +371,23 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     // Any additional styles for the display name
   },
+  leftAction: {
+    backgroundColor: "#497AFC",
+    justifyContent: "center",
+  },
+  // actionText: {
+  //   color: "white",
+  //   fontSize: 16,
+  //   backgroundColor: "transparent",
+  //   // paddingHorizontal: 5,
+  // },
+  // rightAction: {
+  //   justifyContent: "center",
+  //   alignItems: "flex-end",
+  //   // backgroundColor: "#497AFC",
+  //   // padding: 10,
+  //   // paddingRight: 20, // Add some padding to the right for space
+  // },
 });
 
 export default HomeScreen;
