@@ -23,6 +23,7 @@ import {
   orderBy,
   addDoc,
   setDoc,
+  limit,
 } from "firebase/firestore";
 import { FIREBASE_AUTH } from "./firebaseConfig";
 
@@ -67,9 +68,9 @@ const NewChatSection = ({ navigation, route }) => {
     }
   };
 
-  // const handleNewChat = (newMessage) => {};
+  const handleNewChat = (newMessage) => {};
 
-  // allMessages.sort((a, b) => a.timestamp - b.timestamp);
+  allMessages.sort((a, b) => a.timestamp - b.timestamp);
 
   useEffect(() => {
     const receiverUID = route.params?.uid;
@@ -77,7 +78,7 @@ const NewChatSection = ({ navigation, route }) => {
     const userUIDs = [currentUserUID, receiverUID].sort();
     const chatId = userUIDs.join("-");
     const messagesRef = collection(db, "chats", chatId, "messages");
-    const q = query(messagesRef, orderBy("timestamp"));
+    const q = query(messagesRef, orderBy("timestamp"), limit(50));
 
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
       const fetchedMessages = querySnapshot.docs.map((doc) => {
@@ -98,8 +99,9 @@ const NewChatSection = ({ navigation, route }) => {
           receiverName: displayName,
           lastMessage: lastMessage.text,
           lastMessageTimestamp: lastMessage.timestamp,
+          deleted: false,
         };
-        setDoc(chatRef, { users }, { merge: true });
+        setDoc(chatRef, users, { merge: true });
       }
     });
 

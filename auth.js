@@ -52,6 +52,7 @@ const LoginPage = ({ navigation }) => {
     //   "183951813596-vsq1qfptv93rfc8sbkcprqf1g04ltj1g.apps.googleusercontent.com",
     // scopes: ["profile", "email"],
   });
+  const db = getFirestore();
   async function loadFonts() {
     await Font.loadAsync(customFonts);
     setFontsLoaded(true);
@@ -66,7 +67,7 @@ const LoginPage = ({ navigation }) => {
   useEffect(() => {
     if (response?.type === "success") {
       const { id_token } = response.params;
-      const db = getFirestore();
+
       // const userRef = collection(db, "users");
 
       const signInWithGoogle = async () => {
@@ -294,7 +295,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     width: 250,
     alignItems: "center",
-    paddingHorizontal: 20,
+    paddingHorizontal: 13,
     color: "white",
     borderColor: "gray",
     borderWidth: 0.5,

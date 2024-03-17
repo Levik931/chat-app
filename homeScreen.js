@@ -14,6 +14,7 @@ import {
   LayoutAnimation,
   UIManager,
   Alert,
+  ActionSheetIOS,
 } from "react-native";
 import {
   differenceInMinutes,
@@ -35,20 +36,33 @@ import {
   find,
   deleteDoc,
   doc,
+  writeBatch,
+  batch,
+  get,
+  setDoc,
+  serverTimestamp,
 } from "@firebase/firestore";
 
 const HomeScreen = ({ navigation, route }) => {
   const [isSearchActive, setIsSearchActive] = useState(false);
+  const [openSwipeable, setOpenSwipeable] = useState(null); // Track the open swipeable
+  const swipeablesRef = useRef(new Map()).current; // Store refs of swipeables
+  const swipeableRef = useRef(null);
   const fadeAnim = useRef(new Animated.Value(1)).current;
   const auth = FIREBASE_AUTH;
   const db = getFirestore();
   const [chats, setChats] = useState([]);
+  const chatsRef = collection(db, "chats");
+  const usersRef = collection(db, "users");
+  const userUID = auth.currentUser.uid;
+  const closeSwipeable = () => {
+    if (swipeableRef.current) {
+      swipeableRef.current.close();
+    }
+  };
 
   useEffect(() => {
     const fetchChats = async () => {
-      const userUID = auth.currentUser.uid;
-      const chatsRef = collection(db, "chats");
-      const usersRef = collection(db, "users");
       function formatTimeAgo(date) {
         const now = new Date();
         const diffMinutes = differenceInMinutes(now, date);
@@ -72,20 +86,19 @@ const HomeScreen = ({ navigation, route }) => {
 
       const q = query(
         chatsRef,
-        where("users.participants", "array-contains", userUID)
+        where("participants", "array-contains", userUID)
       );
       const querySnapshot = await getDocs(q);
 
       let chatsData = [];
       for (const doc of querySnapshot.docs) {
         let chat = { id: doc.id, ...doc.data() };
-
         const otherUID =
-          chat.users.participants.length === 2 &&
-          chat.users.participants[0] === chat.users.participants[1]
+          chat.participants.length === 2 &&
+          chat.participants[0] === chat.participants[1]
             ? userUID
-            : chat.users.participants.find((uid) => uid !== userUID);
-        const timeAgo = formatTimeAgo(chat.users.lastMessageTimestamp.toDate());
+            : chat.participants.find((uid) => uid !== userUID);
+        const timeAgo = formatTimeAgo(chat.lastMessageTimestamp?.toDate());
         const userQuery = query(usersRef, where("uid", "==", otherUID));
         const userQuerySnapshot = await getDocs(userQuery);
         let otherDisplayName = "Unknown User";
@@ -105,7 +118,7 @@ const HomeScreen = ({ navigation, route }) => {
     };
 
     fetchChats();
-  }, [auth.currentUser.uid, chats]);
+  }, [auth.currentUser.uid, chatsRef]);
 
   const handleScreenPress = () => {
     Keyboard.dismiss();
@@ -177,29 +190,54 @@ const HomeScreen = ({ navigation, route }) => {
     );
   };
 
-  const handleDelete = (chatId) => {
-    Alert.alert(
-      "Delete Chat",
-      "Are you sure you want to delete this chat?",
-      [
-        {
-          text: "Cancel",
-          onPress: () => console.log("Cancel Pressed"),
-          style: "cancel",
-        },
-        {
-          text: "Yes",
-          onPress: () => {
-            deleteDoc(doc(db, "chats", chatId));
-          },
-        },
-      ],
-      { cancelable: false }
+  const handleDelete = async (chatId) => {
+    console.log("Deleting chat with ID:", chatId);
+
+    ActionSheetIOS.showActionSheetWithOptions(
+      {
+        title: "Are you sure you want to delete this chat?",
+        options: ["Cancel", "Delete"],
+        cancelButtonIndex: 0,
+        destructiveButtonIndex: 1,
+      },
+      async (buttonIndex) => {
+        if (buttonIndex === 0) {
+          // Cancel
+        } else if (buttonIndex === 1) {
+          // Delete
+          try {
+            const chatDocRef = doc(db, "chats", chatId);
+            const messagesCollectionRef = collection(chatDocRef, "messages");
+
+            // Delete all messages in the chat
+            const querySnapshot = await getDocs(messagesCollectionRef);
+            const deleteBatch = writeBatch(db);
+
+            // Check if there are any documents before iterating
+            if (!querySnapshot.empty) {
+              querySnapshot.forEach((doc) => {
+                deleteBatch.delete(doc.ref);
+              });
+            } else {
+              console.log("No messages found in this chat.");
+            }
+
+            await deleteBatch.commit();
+            console.log("All messages deleted successfully");
+
+            // Delete the chat document
+            await deleteDoc(chatDocRef);
+            console.log("Chat deleted successfully");
+          } catch (error) {
+            console.error("Error deleting chat: ", error);
+          }
+        }
+      }
     );
   };
 
   return (
-    <TouchableWithoutFeedback onPress={handleScreenPress}>
+    <TouchableWithoutFeedback onPress={closeSwipeable}>
       <SafeAreaView
         style={[styles.safeAreaContainer, { backgroundColor: "black" }]}
       >
@@ -226,13 +264,14 @@ const HomeScreen = ({ navigation, route }) => {
               <>
                 {chats.map((chat, index) => {
                   const displayName = chat.otherDisplayName;
-                  const lastMessage = chat.users.lastMessage || "No messages";
+                  const lastMessage = chat.lastMessage || "No messages";
                   const renderRightActionsWithId = (progress, dragX) =>
                     renderRightActions(progress, dragX, chat.id);
 
                   return (
                     <Swipeable
                       key={chat.id}
+                      ref={swipeableRef}
                       renderRightActions={renderRightActionsWithId}
                       overshootRight={false} // This prevents the button from overshooting
                       friction={4} // Adjust friction for smoother animation
@@ -336,8 +375,8 @@ const styles = StyleSheet.create({
     // paddingVertical: 16,
     marginHorizontal: 10,
     marginBottom: 5,
-    borderBottomWidth: 0.4, // This sets the thickness of the bottom border
-    borderBottomColor: "gray",
+    // borderBottomWidth: 0.4, // This sets the thickness of the bottom border
+    // borderBottomColor: "gray",
   },
   messageText: {
     fontWeight: "bold",
