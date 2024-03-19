@@ -1240,6 +1240,8 @@ PODS:
     - React-CoreModules
     - React-RCTImage
     - React-RCTText
+  - RealmJS (12.6.2):
+    - React
   - RecaptchaInterop (100.0.0)
   - RNCAsyncStorage (1.21.0):
     - React-Core
@@ -1353,6 +1355,7 @@ DEPENDENCIES:
   - React-utils (from `../node_modules/react-native/ReactCommon/react/utils`)
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
   - ReactNativeNavigation (from `../node_modules/react-native-navigation`)
+  - RealmJS (from `../node_modules/realm`)
   - "RNCAsyncStorage (from `../node_modules/@react-native-async-storage/async-storage`)"
   - "RNCMaskedView (from `../node_modules/@react-native-community/masked-view`)"
   - "RNFBApp (from `../node_modules/@react-native-firebase/app`)"
@@ -1526,6 +1529,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon"
   ReactNativeNavigation:
     :path: "../node_modules/react-native-navigation"
+  RealmJS:
+    :path: "../node_modules/realm"
   RNCAsyncStorage:
     :path: "../node_modules/@react-native-async-storage/async-storage"
   RNCMaskedView:
@@ -1631,6 +1636,7 @@ SPEC CHECKSUMS:
   React-utils: 414787344613940abeb72cc95fba338e300ba3ac
   ReactCommon: d4860bcbe85d89bb261ba28948f027325bb577dc
   ReactNativeNavigation: 87b603144cfe2cac1fa04b6c71d0be814d73993b
+  RealmJS: 385df5ee940d96f1de26b1dab153e325633d3052
   RecaptchaInterop: 7d1a4a01a6b2cb1610a47ef3f85f0c411434cb21
   RNCAsyncStorage: 618d03a5f52fbccb3d7010076bc54712844c18ef
   RNCMaskedView: 0e1bc4bfa8365eba5fbbb71e07fbdc0555249489

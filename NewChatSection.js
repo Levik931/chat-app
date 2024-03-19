@@ -30,9 +30,8 @@ import { FIREBASE_AUTH } from "./firebaseConfig";
 const NewChatSection = ({ navigation, route }) => {
   const [messages, setMessages] = useState([]);
   const [message, setMessage] = useState("");
-  const [lastMesage, setLastMessage] = useState("");
-  const [receivedMessages, setReceivedMessages] = useState([]);
-  const allMessages = [...messages, ...receivedMessages];
+
+  const allMessages = [...messages];
   const scrollViewRef = useRef();
   const db = getFirestore();
   const auth = FIREBASE_AUTH;
@@ -68,9 +67,9 @@ const NewChatSection = ({ navigation, route }) => {
     }
   };
 
-  const handleNewChat = (newMessage) => {};
+  // const handleNewChat = (newMessage) => {};
 
-  allMessages.sort((a, b) => a.timestamp - b.timestamp);
+  // allMessages.sort((a, b) => a.timestamp - b.timestamp);
 
   useEffect(() => {
     const receiverUID = route.params?.uid;
@@ -78,7 +77,7 @@ const NewChatSection = ({ navigation, route }) => {
     const userUIDs = [currentUserUID, receiverUID].sort();
     const chatId = userUIDs.join("-");
     const messagesRef = collection(db, "chats", chatId, "messages");
-    const q = query(messagesRef, orderBy("timestamp"), limit(50));
+    const q = query(messagesRef, orderBy("timestamp"));
 
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
       const fetchedMessages = querySnapshot.docs.map((doc) => {
@@ -92,7 +91,6 @@ const NewChatSection = ({ navigation, route }) => {
       setMessages(fetchedMessages);
       if (fetchedMessages.length > 0) {
         const lastMessage = fetchedMessages[fetchedMessages.length - 1];
-        setLastMessage(lastMessage.text);
         const users = {
           participants: [auth.currentUser.uid, uid].sort(),
           senderName: auth.currentUser.displayName,
@@ -106,7 +104,7 @@ const NewChatSection = ({ navigation, route }) => {
     });
 
     return () => unsubscribe();
-  }, [db]);
+  }, []);
 
   return (
     <KeyboardAvoidingView

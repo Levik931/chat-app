@@ -118,7 +118,7 @@ const HomeScreen = ({ navigation, route }) => {
     };
 
     fetchChats();
-  }, [auth.currentUser.uid, chatsRef]);
+  }, [navigation]);
 
   const handleScreenPress = () => {
     Keyboard.dismiss();
