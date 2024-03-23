@@ -21,6 +21,7 @@ import {
   differenceInHours,
   differenceInDays,
 } from "date-fns";
+
 import Ionicons from "react-native-vector-icons/Ionicons";
 import MenuModal from "./MenuModal";
 import Swipeable from "react-native-gesture-handler/Swipeable";
@@ -37,6 +38,7 @@ import {
   deleteDoc,
   doc,
   writeBatch,
+  onSnapshot,
   batch,
   get,
   setDoc,
@@ -46,8 +48,9 @@ import {
 const HomeScreen = ({ navigation, route }) => {
   const [isSearchActive, setIsSearchActive] = useState(false);
   const [openSwipeable, setOpenSwipeable] = useState(null); // Track the open swipeable
-  const swipeablesRef = useRef(new Map()).current; // Store refs of swipeables
-  const swipeableRef = useRef(null);
+  const swipeablesRef = useRef(new Map()).current; // Store refs indexed by chat ID
+
+  // const swipeableRef = useRef(null);
   const fadeAnim = useRef(new Animated.Value(1)).current;
   const auth = FIREBASE_AUTH;
   const db = getFirestore();
@@ -55,70 +58,83 @@ const HomeScreen = ({ navigation, route }) => {
   const chatsRef = collection(db, "chats");
   const usersRef = collection(db, "users");
   const userUID = auth.currentUser.uid;
-  const closeSwipeable = () => {
-    if (swipeableRef.current) {
-      swipeableRef.current.close();
-    }
+  const closeSwipeables = () => {
+    swipeablesRef.forEach((swipeable, chatId) => {
+      if (swipeable) {
+        swipeable.close();
+      }
+    });
+  };
+  const navigateToUserSearch = () => {
+    navigation.navigate("UserSearch");
+
+    setTimeout(() => {
+      closeSwipeables();
+    }, 250);
   };
 
   useEffect(() => {
-    const fetchChats = async () => {
-      function formatTimeAgo(date) {
-        const now = new Date();
-        const diffMinutes = differenceInMinutes(now, date);
-        const diffHours = differenceInHours(now, date);
-        const diffDays = differenceInDays(now, date);
+    const chatsRef = collection(db, "chats");
+    const usersRef = collection(db, "users"); // Corrected variable name to usersRef for consistency
 
-        if (diffDays >= 1) {
-          if (diffDays === 1) {
-            return "Yesterday";
-          } else {
-            return `${diffDays} d`;
-          }
-        } else if (diffHours >= 1) {
-          return `${diffHours}h`;
-        } else if (diffMinutes >= 1) {
-          return `${diffMinutes}m`;
-        } else {
-          return "Just now";
-        }
+    const formatTimeAgo = (date) => {
+      const now = new Date();
+      const diffMinutes = differenceInMinutes(now, date.toDate());
+      const diffHours = differenceInHours(now, date.toDate());
+      const diffDays = differenceInDays(now, date.toDate());
+
+      if (diffDays >= 1) {
+        return diffDays === 1 ? "Yesterday" : `${diffDays} days ago`;
+      } else if (diffHours >= 1) {
+        return `${diffHours}h ago`;
+      } else if (diffMinutes >= 1) {
+        return `${diffMinutes}m ago`;
+      } else {
+        return "Just now";
       }
-
-      const q = query(
-        chatsRef,
-        where("participants", "array-contains", userUID)
-      );
-      const querySnapshot = await getDocs(q);
-
-      let chatsData = [];
-      for (const doc of querySnapshot.docs) {
-        let chat = { id: doc.id, ...doc.data() };
-        const otherUID =
-          chat.participants.length === 2 &&
-          chat.participants[0] === chat.participants[1]
-            ? userUID
-            : chat.participants.find((uid) => uid !== userUID);
-        const timeAgo = formatTimeAgo(chat.lastMessageTimestamp?.toDate());
-        const userQuery = query(usersRef, where("uid", "==", otherUID));
-        const userQuerySnapshot = await getDocs(userQuery);
-        let otherDisplayName = "Unknown User";
-        userQuerySnapshot.forEach((userDoc) => {
-          const fullName = userDoc.data().displayName || "Unknown";
-          const firstName = fullName.split(" ")[0];
-          otherDisplayName = firstName;
-        });
-
-        chat.otherDisplayName = otherDisplayName;
-        chat.otherUID = otherUID;
-        chat.timeAgo = timeAgo;
-        chatsData.push(chat);
-      }
-
-      setChats(chatsData);
     };
 
-    fetchChats();
-  }, [navigation]);
+    const q = query(chatsRef, where("participants", "array-contains", userUID));
+
+    const unsubscribe = onSnapshot(q, async (querySnapshot) => {
+      const chatsDataPromises = querySnapshot.docs.map(async (doc) => {
+        const chat = doc.data();
+        const otherUID =
+          chat.participants.find((uid) => uid !== userUID) || userUID;
+        let displayName = "Unknown User";
+
+        try {
+          const userQuery = query(usersRef, where("uid", "==", otherUID));
+          const userSnapshot = await getDocs(userQuery);
+          const userDoc = userSnapshot.docs[0];
+
+          if (userDoc) {
+            displayName = userDoc.data().displayName;
+          }
+        } catch (error) {
+          console.error("Error fetching user displayName:", error);
+        }
+
+        const lastMessage = chat.lastMessage || "No messages";
+        const timeAgo = chat.lastMessageTimestamp
+          ? formatTimeAgo(chat.lastMessageTimestamp)
+          : "N/A";
+
+        return {
+          id: doc.id,
+          otherDisplayName: displayName,
+          otherUID: otherUID,
+          timeAgo: timeAgo,
+          lastMessage: lastMessage,
+        };
+      });
+
+      const chatsData = await Promise.all(chatsDataPromises);
+      setChats(chatsData);
+    });
+
+    return () => unsubscribe();
+  }, [userUID, db]);
 
   const handleScreenPress = () => {
     Keyboard.dismiss();
@@ -237,7 +253,7 @@ const HomeScreen = ({ navigation, route }) => {
   };
 
   return (
-    <TouchableWithoutFeedback onPress={closeSwipeable}>
+    <TouchableWithoutFeedback onPress={closeSwipeables}>
       <SafeAreaView
         style={[styles.safeAreaContainer, { backgroundColor: "black" }]}
       >
@@ -252,7 +268,7 @@ const HomeScreen = ({ navigation, route }) => {
                 <Text style={styles.messagesHeading}>Messages</Text>
                 <TouchableOpacity
                   style={styles.newChatIconContainer}
-                  onPress={() => navigation.navigate("UserSearch")}
+                  onPress={navigateToUserSearch}
                 >
                   <Ionicons name="add-circle-outline" size={40} color="white" />
                 </TouchableOpacity>
@@ -271,7 +287,7 @@ const HomeScreen = ({ navigation, route }) => {
                   return (
                     <Swipeable
                       key={chat.id}
-                      ref={swipeableRef}
+                      ref={(ref) => swipeablesRef.set(chat.id, ref)}
                       renderRightActions={renderRightActionsWithId}
                       overshootRight={false} // This prevents the button from overshooting
                       friction={4} // Adjust friction for smoother animation

@@ -1,4 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
 import {
   View,
   TextInput,
@@ -8,6 +10,8 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  Animated,
+  UIManager,
   SafeAreaView,
 } from "react-native";
 import Svg, { Path } from "react-native-svg";
@@ -25,13 +29,16 @@ import {
   setDoc,
   limit,
 } from "firebase/firestore";
+import { FadeIn, FadeInDown, FadeOut } from "react-native-reanimated";
+import { format } from "date-fns";
 import { FIREBASE_AUTH } from "./firebaseConfig";
 
 const NewChatSection = ({ navigation, route }) => {
   const [messages, setMessages] = useState([]);
   const [message, setMessage] = useState("");
-
-  const allMessages = [...messages];
+  const [sentMessages, setSentMessages] = useState([]);
+  const [receivedMessages, setReceivedMessages] = useState([]);
+  const [lastMessage, setLastMessage] = useState(null);
   const scrollViewRef = useRef();
   const db = getFirestore();
   const auth = FIREBASE_AUTH;
@@ -40,6 +47,20 @@ const NewChatSection = ({ navigation, route }) => {
   const chatId = userUIDs.join("-");
   const chatRef = doc(db, "chats", chatId);
   const messagesRef = collection(db, "chats", chatId, "messages");
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const fadeIn = () => {
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 500,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  if (Platform.OS === "android") {
+    if (UIManager.setLayoutAnimationEnabledExperimental) {
+      UIManager.setLayoutAnimationEnabledExperimental(true);
+    }
+  }
 
   const handleSend = async () => {
     if (message.trim() === "") {
@@ -48,38 +69,41 @@ const NewChatSection = ({ navigation, route }) => {
 
     const newMessage = {
       text: message,
-      timestamp: serverTimestamp(),
+      timestamp: new Date(),
       senderName: auth.currentUser.displayName,
       senderId: auth.currentUser.uid,
       receiverId: uid,
       receiverName: displayName,
       type: "sentMessage",
     };
-
+    setMessages((prevMessages) => [...prevMessages, newMessage]);
     try {
-      await addDoc(messagesRef, newMessage);
+      await addDoc(messagesRef, {
+        ...newMessage,
+        timestamp: serverTimestamp(), // Use serverTimestamp for the database
+      });
+      const users = {
+        participants: [auth.currentUser.uid, uid].sort(),
+        senderName: auth.currentUser.displayName,
+        receiverName: displayName,
+        lastMessage: newMessage.text,
+        lastMessageTimestamp: newMessage.timestamp,
+        deleted: false,
+      };
+      setDoc(chatRef, users, { merge: true });
 
-      // handleNewChat(newMessage);
-      // setMessages((prevMessages) => [...prevMessages, newMessage]);
       setMessage("");
+      fadeAnim.setValue(0); // Reset the animation value
+      fadeIn(); // Trigger the animation
     } catch (error) {
       console.error("Error sending message: ", error);
     }
   };
-
-  // const handleNewChat = (newMessage) => {};
-
-  // allMessages.sort((a, b) => a.timestamp - b.timestamp);
-
   useEffect(() => {
-    const receiverUID = route.params?.uid;
-    const currentUserUID = auth.currentUser.uid;
-    const userUIDs = [currentUserUID, receiverUID].sort();
-    const chatId = userUIDs.join("-");
-    const messagesRef = collection(db, "chats", chatId, "messages");
-    const q = query(messagesRef, orderBy("timestamp"));
-
-    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+    // Initial fetch to populate the messages
+    const fetchMessages = async () => {
+      const q = query(messagesRef, orderBy("timestamp"));
+      const querySnapshot = await getDocs(q);
       const fetchedMessages = querySnapshot.docs.map((doc) => {
         let msg = doc.data();
         msg.type =
@@ -89,51 +113,60 @@ const NewChatSection = ({ navigation, route }) => {
         return msg;
       });
       setMessages(fetchedMessages);
-      if (fetchedMessages.length > 0) {
-        const lastMessage = fetchedMessages[fetchedMessages.length - 1];
-        const users = {
-          participants: [auth.currentUser.uid, uid].sort(),
-          senderName: auth.currentUser.displayName,
-          receiverName: displayName,
-          lastMessage: lastMessage.text,
-          lastMessageTimestamp: lastMessage.timestamp,
-          deleted: false,
-        };
-        setDoc(chatRef, users, { merge: true });
-      }
+    };
+
+    fetchMessages().catch(console.error);
+
+    // onSnapshot subscription
+    const unsubscribe = onSnapshot(messagesRef, (querySnapshot) => {
+      querySnapshot.docChanges().forEach((change) => {
+        if (change.type === "added") {
+          let msg = change.doc.data();
+          msg.type =
+            msg.senderId === auth.currentUser.uid
+              ? "sentMessage"
+              : "receivedMessage";
+          // Filter out sent messages to avoid duplication
+          if (msg.type === "receivedMessage") {
+            setMessages((prevMessages) => [...prevMessages, msg]);
+          }
+        }
+      });
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [route.params?.uid, auth.currentUser.uid]); // Dependencies
 
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
-      // style={[styles.container, { display: isVisible ? "flex" : "none" }]}
       style={styles.container}
       // animationType="slide"
     >
       <SafeAreaView style={styles.safeAreaContainer}>
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          style={styles.closeButton}
-        >
-          <Svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="#FFFFFF"
-            width={30}
-            height={30}
+        <View style={styles.header}>
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={styles.closeButton}
           >
-            <Path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M15 19l-7-7 7-7"
-            />
-          </Svg>
-        </TouchableOpacity>
+            <Svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="#FFFFFF"
+              width={30}
+              height={30}
+            >
+              <Path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 19l-7-7 7-7"
+              />
+            </Svg>
+          </TouchableOpacity>
+          <Text style={styles.title}>{displayName}</Text>
+        </View>
         <ScrollView
           style={styles.scrollViewContent}
           keyboardShouldPersistTaps="handled"
@@ -142,19 +175,55 @@ const NewChatSection = ({ navigation, route }) => {
             scrollViewRef.current.scrollToEnd({ animated: true });
           }}
         >
-          {Array.isArray(allMessages) &&
-            allMessages.map((msg, index) => (
+          {Array.isArray(messages) &&
+            messages.map((msg, index) => (
+              // console.log("MESSAGE: ", msg),
               <View
                 key={index}
-                style={
+                style={[
                   msg.type === "sentMessage"
                     ? styles.messageContainer
-                    : styles.messageContainerReceived
-                }
+                    : styles.messageContainerReceived,
+                  {
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                  },
+                ]}
               >
                 <Text style={styles.messageText}>{msg.text}</Text>
+                {msg.timestamp && (
+                  <Text style={styles.messageTimestamp}>
+                    {format(
+                      msg.timestamp instanceof Date
+                        ? msg.timestamp
+                        : msg.timestamp.toDate(),
+                      "p"
+                    )}
+                  </Text>
+                )}
               </View>
             ))}
+          {/* {lastMessage && (
+            <Animated.View
+              style={[
+                { opacity: fadeAnim },
+                lastMessage.type === "sentMessage"
+                  ? styles.messageContainer
+                  : styles.messageContainerReceived,
+                {
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                },
+              ]}
+            >
+              <Text style={styles.messageText}>{lastMessage.text}</Text>
+              <Text style={styles.messageTimestamp}>
+                {format(new Date(), "p")}
+              </Text>
+            </Animated.View>
+          )} */}
         </ScrollView>
 
         <View style={styles.inputContainer}>
@@ -164,10 +233,8 @@ const NewChatSection = ({ navigation, route }) => {
             multiline
             value={message}
             onChangeText={setMessage}
+            placeholderTextColor={"#ccc"}
           />
-          {message === "" && (
-            <Text style={styles.placeholderText}>Type your message...</Text>
-          )}
 
           <TouchableOpacity onPress={handleSend} style={styles.sendButton}>
             <Icon name="send" size={22} color="white" />
@@ -214,7 +281,7 @@ const styles = StyleSheet.create({
   },
 
   scrollViewContent: {
-    marginTop: 55,
+    marginTop: 18,
     marginBottom: 20,
     flexGrow: 1,
   },
@@ -231,12 +298,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "white",
   },
-  closeButton: {
-    // position: "absolute",
-    top: 20,
-    left: 30,
-    zIndex: 10,
-  },
+
   messageContainer: {
     marginHorizontal: 20,
     padding: 6,
@@ -249,6 +311,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     height: 30,
   },
+
   messageContainerReceived: {
     marginHorizontal: 20,
     padding: 6,
@@ -261,7 +324,27 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     height: 30,
   },
-  messageText: {},
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 5,
+  },
+  closeButton: {
+    marginRight: 8,
+    marginLeft: 20,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: "600",
+    color: "white",
+    marginLeft: 10,
+  },
+  messageTimestamp: {
+    fontSize: 12,
+    color: "gray",
+    marginLeft: 10,
+    paddingTop: 5,
+  },
 });
 
 export default NewChatSection;

@@ -17,7 +17,6 @@ import {
 } from "firebase/firestore";
 import Icon from "react-native-vector-icons/FontAwesome";
 import debounce from "lodash.debounce";
-import { Navigation } from "react-native-navigation";
 
 const UserSearch = ({
   onSelectUser,
@@ -98,7 +97,6 @@ const UserSearch = ({
             <TouchableOpacity
               key={user.uid}
               onPress={() => {
-                // onSelectUser(user.uid);
                 navigation.goBack();
 
                 setTimeout(
@@ -150,9 +148,8 @@ const styles = StyleSheet.create({
     paddingRight: 1,
   },
   resultsContainer: {
-    // Adjust this style as needed
     maxHeight: 200,
-    // backgroundColor: "#fff", // Choose a background color that fits your app theme
+
     marginHorizontal: 10,
     borderRadius: 10,
     backgroundColor: "#black",
@@ -160,11 +157,11 @@ const styles = StyleSheet.create({
   userItem: {
     paddingVertical: 17,
     paddingHorizontal: 15,
-    borderBottomWidth: 1, // Optional: adds a separator line between items
-    borderBottomColor: "#ccc", // Optional: color for the separator line
+    borderBottomWidth: 1,
+    borderBottomColor: "#ccc",
   },
   userText: {
-    color: "white", // Adjust text color to improve readability on the new background
+    color: "white",
     fontSize: 16,
     fontWeight: "bold",
   },

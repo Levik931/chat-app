@@ -34,13 +34,11 @@ const TabNavigator = () => (
         } else if (route.name === "Menu") {
           iconName = focused ? "menu-outline" : "menu-outline";
         }
-
-        // You can return any component that you like here!
         return <Icon name={iconName} size={size} color={color} />;
       },
       tabBarActiveTintColor: "tomato",
       tabBarInactiveTintColor: "gray",
-      tabBarStyle: { backgroundColor: "black" },
+      tabBarStyle: { backgroundColor: "black", height: 86, paddingTop: 9 },
     })}
   >
     <Tab.Screen name="Home" component={HomeScreen} />
