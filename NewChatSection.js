@@ -76,7 +76,19 @@ const NewChatSection = ({ navigation, route }) => {
       receiverName: displayName,
       type: "sentMessage",
     };
+    try {
+      const existingMessages =
+        JSON.parse(await AsyncStorage.getItem("messages")) || [];
+      await AsyncStorage.setItem(
+        "messages",
+        JSON.stringify([...existingMessages, newMessage])
+      );
+    } catch (error) {
+      console.error("Error saving message to local storage: ", error);
+    }
+
     setMessages((prevMessages) => [...prevMessages, newMessage]);
+
     try {
       await addDoc(messagesRef, {
         ...newMessage,
@@ -99,20 +111,42 @@ const NewChatSection = ({ navigation, route }) => {
       console.error("Error sending message: ", error);
     }
   };
+
+  // useEffect(() => {
+  //   const deleteAllChats = async () => {
+  //     try {
+  //       await AsyncStorage.clear();
+  //       console.log("All chats and messages deleted successfully.");
+  //     } catch (error) {
+  //       console.error("Error deleting all chats and messages:", error);
+  //     }
+  //   };
+
+  //   deleteAllChats().catch(console.error);
+  // }, []);
+  // Initial fetch to populate the messages
   useEffect(() => {
-    // Initial fetch to populate the messages
     const fetchMessages = async () => {
-      const q = query(messagesRef, orderBy("timestamp"));
-      const querySnapshot = await getDocs(q);
-      const fetchedMessages = querySnapshot.docs.map((doc) => {
-        let msg = doc.data();
-        msg.type =
-          msg.senderId === auth.currentUser.uid
-            ? "sentMessage"
-            : "receivedMessage";
-        return msg;
-      });
-      setMessages(fetchedMessages);
+      // Attempt to load from local storage first
+      const localMessages = JSON.parse(await AsyncStorage.getItem("messages"));
+      if (localMessages && localMessages.length > 0) {
+        setMessages(localMessages);
+      } else {
+        // Fallback to fetching from database
+        const q = query(messagesRef, orderBy("timestamp"));
+        const querySnapshot = await getDocs(q);
+        const fetchedMessages = querySnapshot.docs.map((doc) => {
+          let msg = doc.data();
+          msg.type =
+            msg.senderId === auth.currentUser.uid
+              ? "sentMessage"
+              : "receivedMessage";
+          return msg;
+        });
+        setMessages(fetchedMessages);
+        // Save fetched messages to local storage
+        await AsyncStorage.setItem("messages", JSON.stringify(fetchedMessages));
+      }
     };
 
     fetchMessages().catch(console.error);
@@ -195,9 +229,11 @@ const NewChatSection = ({ navigation, route }) => {
                 {msg.timestamp && (
                   <Text style={styles.messageTimestamp}>
                     {format(
-                      msg.timestamp instanceof Date
-                        ? msg.timestamp
-                        : msg.timestamp.toDate(),
+                      new Date(
+                        msg.timestamp.seconds
+                          ? msg.timestamp.seconds * 1000
+                          : msg.timestamp
+                      ),
                       "p"
                     )}
                   </Text>

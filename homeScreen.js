@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   View,
   Text,
@@ -244,6 +245,17 @@ const HomeScreen = ({ navigation, route }) => {
             // Delete the chat document
             await deleteDoc(chatDocRef);
             console.log("Chat deleted successfully");
+            try {
+              await AsyncStorage.removeItem(`messages_${chatId}`);
+              console.log(
+                "Chat messages deleted from local storage successfully"
+              );
+            } catch (error) {
+              console.error(
+                "Error deleting chat messages from local storage: ",
+                error
+              );
+            }
           } catch (error) {
             console.error("Error deleting chat: ", error);
           }
